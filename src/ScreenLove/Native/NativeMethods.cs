@@ -132,5 +132,17 @@ namespace ScreenLove.Native
 
         [DllImport("user32.dll")]
         public static extern bool SetWindowDisplayAffinity(IntPtr hWnd, uint dwAffinity);
+
+        public const int WS_EX_LAYERED = 0x80000;
+
+        [DllImport("user32.dll")]
+        public static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        /// <summary>Risoluzione del timer di sistema a 1 ms (per una frequenza dei fotogrammi regolare).</summary>
+        [DllImport("winmm.dll")]
+        public static extern uint timeBeginPeriod(uint uPeriod);
+
+        [DllImport("winmm.dll")]
+        public static extern uint timeEndPeriod(uint uPeriod);
     }
 }

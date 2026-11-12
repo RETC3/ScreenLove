@@ -12,17 +12,18 @@
                     <Button Style="{StaticResource AccentButton}" Click="CaptureRegion_Click" ToolTip="Stamp">
                         <TextBlock Text="＋  Cattura area"/>
                     </Button>
-                    <Button Style="{StaticResource ToolButton}" Click="CaptureFull_Click" ToolTip="Ctrl+Stamp" Content="Schermo intero"/>
-                    <Button Style="{StaticResource ToolButton}" Click="CaptureScrolling_Click" ToolTip="Ctrl+Maiusc+Stamp" Content="A scorrimento"/>
-                    <Button Style="{StaticResource ToolButton}" Click="CaptureText_Click" ToolTip="Ctrl+Alt+Stamp · riconosce testo e QR code" Content="Testo (OCR)"/>
-                    <Button Style="{StaticResource ToolButton}" Click="CaptureDelayed_Click" ToolTip="Maiusc+Stamp" x:Name="DelayButton" Content="Con ritardo"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureFull_Click" ToolTip="Ctrl+Stamp" Content="Schermo"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureScrolling_Click" ToolTip="Ctrl+Maiusc+Stamp" Content="Scorrimento"/>
+                    <Button Style="{StaticResource ToolButton}" Click="RecordVideo_Click" ToolTip="Ctrl+Alt+R · avvia o ferma" x:Name="RecordButton" Content="● Video"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureText_Click" ToolTip="Ctrl+Alt+Stamp · riconosce testo e QR code" Content="Testo"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureDelayed_Click" ToolTip="Maiusc+Stamp" x:Name="DelayButton" Content="Ritardo"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button Style="{StaticResource ToolButton}" Click="Edit_Click" Content="Modifica"/>
                     <Button Style="{StaticResource ToolButton}" Click="ExtractText_Click" ToolTip="Riconosce testo e QR code nella cattura selezionata" Content="Estrai testo"/>
                     <Button Style="{StaticResource ToolButton}" Click="Copy_Click" Content="Copia"/>
                     <Button Style="{StaticResource ToolButton}" Click="Delete_Click" Content="Elimina"/>
-                    <Button Style="{StaticResource ToolButton}" Click="OpenFolder_Click" Content="Apri cartella"/>
+                    <Button Style="{StaticResource ToolButton}" Click="OpenFolder_Click" Content="Cartella"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -73,8 +74,17 @@
                     <DataTemplate>
                         <StackPanel Width="200" ToolTip="{Binding Path}">
                             <Border Height="128" Background="{StaticResource CanvasBrush}" CornerRadius="5">
-                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4"
-                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Grid>
+                                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4"
+                                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    <!-- simbolo dei video -->
+                                    <Border Visibility="{Binding IsVideo, Converter={StaticResource BoolToVisibility}}"
+                                            Width="40" Height="40" CornerRadius="20" Background="#CC1E1F24"
+                                            BorderBrush="{StaticResource AccentBrush}" BorderThickness="1.5"
+                                            HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <TextBlock Text="▶" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3,0,0,1"/>
+                                    </Border>
+                                </Grid>
                             </Border>
                             <TextBlock Text="{Binding Name}" Margin="2,7,2,0" FontSize="12" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Text="{Binding Info}" Margin="2,2,2,0" FontSize="11" Foreground="{StaticResource MutedBrush}"/>

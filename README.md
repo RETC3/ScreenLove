@@ -23,12 +23,20 @@ ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRE
   Nella finestra del risultato si può cambiare lingua, modificare il testo e unire le righe.
   Disponibile anche come "Estrai testo" su una cattura del workspace o nell'editor.
 - `Maiusc+Stamp`: cattura con conto alla rovescia (per menu contestuali)
+- `Ctrl+Alt+R`: **registrazione video MP4** (avvia / ferma). Si sceglie finestra o zona, parte un
+  conto alla rovescia di 3 s, poi si registra a 30 fps in H.264 con audio AAC
+  - audio di sistema e/o microfono (scelta nel menu dell'icona), mescolati in un'unica traccia
+    e sincronizzati col video (scarto misurato < 60 ms, anche dopo una pausa)
+  - cornice attorno alla zona e barra con tempo, Pausa/Riprendi, Stop, Annulla: non compaiono nel video
+  - codifica hardware quando disponibile (Media Foundation tramite il MediaTranscoder di Windows)
 - Se un tasto è già occupato (es. da un'altra app di cattura) si usano `Ctrl+Alt+A` / `Ctrl+Alt+F` / `Ctrl+Alt+S` / `Ctrl+Alt+T`
 - Multi-monitor e DPI per-monitor
 
 **Workspace**
 - Storico di tutte le catture (`Immagini\ScreenLove`), miniature, selezione multipla
-- Doppio clic = editor · trascina verso altre app · copia immagine/percorso · elimina nel Cestino
+- Doppio clic = editor (immagini) o lettore di Windows (video) · trascina verso altre app ·
+  copia immagine/percorso · elimina nel Cestino
+- I video mostrano anteprima, risoluzione e durata
 
 **Editor**
 - Freccia (`A`), Rettangolo (`R`), Ellisse (`E`), Evidenziatore (`H`), Testo (`T`), Step numerati (`N`),
@@ -48,7 +56,7 @@ dotnet build ScreenLove.sln
 dotnet run --project src/ScreenLove
 ```
 
-L'eseguibile di sviluppo è in `src/ScreenLove/bin/Debug/net8.0-windows/ScreenLove.exe` e richiede il
+L'eseguibile di sviluppo è in `src/ScreenLove/bin/Debug/net8.0-windows10.0.19041.0/ScreenLove.exe` e richiede il
 .NET 8 Desktop Runtime.
 
 ### Eseguibile autonomo (da distribuire)
@@ -78,12 +86,13 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `Capture/` | overlay di selezione, conto alla rovescia, orchestrazione della cattura |
 | `Services/` | cattura GDI, ricerca finestre, tasti rapidi globali, storico, I/O immagini, icona |
 | `Workspace/` | finestra dello storico |
+| `Recording/` | registrazione video: cattura fotogrammi, mixer audio (NAudio), codifica MP4, cornice e barra di controllo |
 | `Ocr/` | finestra del testo riconosciuto (OCR e codici QR/a barre) |
 | `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, superficie di disegno, finestra editor |
 
 ## Prossimi passi (roadmap)
 
-1. Registrazione video MP4 (Windows.Graphics.Capture + Media Foundation), audio di sistema/microfono
+1. Video: taglio inizio/fine, unione, webcam, cattura con Windows.Graphics.Capture (meno CPU)
 2. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
 3. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
 4. Effetti bordo: ombra, angoli arrotondati, bordi strappati, watermark

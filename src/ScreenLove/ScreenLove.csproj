@@ -25,6 +25,8 @@
   <ItemGroup>
     <!-- Lettura di codici QR e a barre (Apache 2.0) -->
     <PackageReference Include="ZXing.Net" Version="0.16.9" />
+    <!-- Cattura audio WASAPI (sistema in loopback + microfono), MIT -->
+    <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
   </ItemGroup>
 
 </Project>

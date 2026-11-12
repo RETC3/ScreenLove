@@ -36,8 +36,16 @@ namespace ScreenLove.Services
             private set { _info = value; OnPropertyChanged(); }
         }
 
+        public bool IsVideo => System.IO.Path.GetExtension(Path).Equals(".mp4", StringComparison.OrdinalIgnoreCase);
+
         public async Task LoadThumbnailAsync()
         {
+            if (IsVideo)
+            {
+                await LoadVideoThumbnailAsync();
+                return;
+            }
+
             var path = Path;
             try
             {
@@ -71,6 +79,38 @@ namespace ScreenLove.Services
             }
         }
 
+        /// <summary>Anteprima e durata dei video tramite la shell di Windows.</summary>
+        private async Task LoadVideoThumbnailAsync()
+        {
+            try
+            {
+                var file = await Windows.Storage.StorageFile.GetFileFromPathAsync(Path);
+                using (var thumb = await file.GetThumbnailAsync(Windows.Storage.FileProperties.ThumbnailMode.SingleItem, 360,
+                           Windows.Storage.FileProperties.ThumbnailOptions.ResizeThumbnail))
+                {
+                    if (thumb != null && thumb.Size > 0)
+                    {
+                        var bi = new BitmapImage();
+                        bi.BeginInit();
+                        bi.CacheOption = BitmapCacheOption.OnLoad;
+                        bi.StreamSource = thumb.AsStreamForRead();
+                        bi.EndInit();
+                        bi.Freeze();
+                        Thumbnail = bi;
+                    }
+                }
+
+                var props = await file.Properties.GetVideoPropertiesAsync();
+                var d = props.Duration;
+                string duration = d.TotalHours >= 1 ? d.ToString(@"h\:mm\:ss") : d.ToString(@"m\:ss");
+                Info = $"{props.Width} × {props.Height} · {duration} · {Created:dd/MM/yyyy HH:mm}";
+            }
+            catch
+            {
+                Info = $"Video · {Created:dd/MM/yyyy HH:mm}";
+            }
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
 
         private void OnPropertyChanged([CallerMemberName] string? name = null) =>
@@ -80,7 +120,7 @@ namespace ScreenLove.Services
     /// <summary>Storico delle catture: tutte le immagini nella cartella delle catture.</summary>
     public sealed class CaptureStore
     {
-        private static readonly string[] Extensions = { ".png", ".jpg", ".jpeg", ".bmp" };
+        private static readonly string[] Extensions = { ".png", ".jpg", ".jpeg", ".bmp", ".mp4" };
 
         public CaptureStore(string folder)
         {
@@ -105,14 +145,20 @@ namespace ScreenLove.Services
             }
         }
 
-        public string SaveNew(BitmapSource image)
+        /// <summary>Nuovo nome libero nella cartella delle catture, es. ScreenLove_2026-11-12_15-30-00.mp4.</summary>
+        public string NewPath(string extension)
         {
             Directory.CreateDirectory(Folder);
             string baseName = $"ScreenLove_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}";
-            string path = System.IO.Path.Combine(Folder, baseName + ".png");
+            string path = System.IO.Path.Combine(Folder, baseName + extension);
             for (int i = 2; File.Exists(path); i++)
-                path = System.IO.Path.Combine(Folder, $"{baseName}_{i}.png");
+                path = System.IO.Path.Combine(Folder, $"{baseName}_{i}{extension}");
+            return path;
+        }
 
+        public string SaveNew(BitmapSource image)
+        {
+            string path = NewPath(".png");
             ImageIO.Save(image, path);
             var item = new CaptureItem(path);
             Items.Insert(0, item);

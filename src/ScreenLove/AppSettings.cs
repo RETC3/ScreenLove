@@ -16,6 +16,12 @@ namespace ScreenLove
         public bool IncludeCursor { get; set; } = false;
         public int DelaySeconds { get; set; } = 3;
 
+        // Registrazione video
+        public int RecordFps { get; set; } = 30;
+        public bool RecordCursor { get; set; } = true;
+        public bool RecordSystemAudio { get; set; } = true;
+        public bool RecordMicrophone { get; set; } = false;
+
         private static string SettingsPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLove", "settings.json");
 

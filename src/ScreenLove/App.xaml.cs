@@ -27,6 +27,7 @@ namespace ScreenLove
         public static AppSettings Settings { get; private set; } = null!;
         public static CaptureStore Store { get; private set; } = null!;
         public static CaptureController Capture { get; private set; } = null!;
+        public static Recording.RecordingController Recorder { get; private set; } = null!;
 
         /// <summary>Descrizione dei tasti rapidi effettivamente registrati.</summary>
         public static string HotkeySummary { get; private set; } = "";
@@ -58,6 +59,16 @@ namespace ScreenLove
             Capture.ColorCopied += c => Notify("Colore copiato", $"{c} è negli appunti.");
             Capture.ScrollingFinished += msg => Notify("Cattura a scorrimento", msg);
             Capture.TextAreaCaptured += ShowTextRecognition;
+
+            Recorder = new Recording.RecordingController(Settings, Store);
+            Recorder.Message += Notify;
+            Recorder.Saved += path =>
+            {
+                if (Settings.ShowWorkspaceAfterCapture)
+                    ShowWorkspace(path);
+                else
+                    Notify("Video salvato", System.IO.Path.GetFileName(path));
+            };
 
             SetupHotkeys();
             SetupTray();
@@ -95,6 +106,9 @@ namespace ScreenLove
             else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'T', () => _ = Capture.CaptureTextAsync()))
                 lines.Add("Ctrl+Alt+T: testo (OCR)");
 
+            if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'R', () => _ = Recorder.ToggleAsync()))
+                lines.Add("Ctrl+Alt+R: avvia/ferma video");
+
             if (_hotkeys.Register(NativeMethods.MOD_SHIFT, VK_SNAPSHOT, () => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds)))
                 lines.Add($"Maiusc+Stamp: cattura con ritardo di {Settings.DelaySeconds} s");
 
@@ -110,6 +124,10 @@ namespace ScreenLove
             menu.Items.Add("Cattura schermo intero", null, (_, _) => _ = Capture.CaptureFullScreenAsync());
             menu.Items.Add("Cattura a scorrimento", null, (_, _) => _ = Capture.CaptureScrollingAsync());
             menu.Items.Add("Cattura testo (OCR / QR code)", null, (_, _) => _ = Capture.CaptureTextAsync());
+            var recordItem = new WF.ToolStripMenuItem("Registra video");
+            recordItem.Click += (_, _) => _ = Recorder.ToggleAsync();
+            menu.Opening += (_, _) => recordItem.Text = Recorder.IsRecording ? "Ferma e salva il video" : "Registra video";
+            menu.Items.Add(recordItem);
             menu.Items.Add($"Cattura con ritardo ({Settings.DelaySeconds} s)", null, (_, _) => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds));
             menu.Items.Add(new WF.ToolStripSeparator());
             menu.Items.Add("Apri workspace", null, (_, _) => ShowWorkspace());
@@ -119,6 +137,9 @@ namespace ScreenLove
             AddToggle(menu, "Apri l'editor dopo la cattura", () => Settings.OpenEditorAfterCapture, v => Settings.OpenEditorAfterCapture = v);
             AddToggle(menu, "Mostra il workspace dopo la cattura", () => Settings.ShowWorkspaceAfterCapture, v => Settings.ShowWorkspaceAfterCapture = v);
             AddToggle(menu, "Includi il cursore (schermo intero)", () => Settings.IncludeCursor, v => Settings.IncludeCursor = v);
+            AddToggle(menu, "Video: registra l'audio di sistema", () => Settings.RecordSystemAudio, v => Settings.RecordSystemAudio = v);
+            AddToggle(menu, "Video: registra il microfono", () => Settings.RecordMicrophone, v => Settings.RecordMicrophone = v);
+            AddToggle(menu, "Video: mostra il cursore", () => Settings.RecordCursor, v => Settings.RecordCursor = v);
             AddToggle(menu, "Avvia con Windows", IsAutostartEnabled, SetAutostart);
             menu.Items.Add(new WF.ToolStripSeparator());
             menu.Items.Add("Esci", null, (_, _) => ExitApp());
@@ -207,8 +228,11 @@ namespace ScreenLove
                 key.DeleteValue("ScreenLove", throwOnMissingValue: false);
         }
 
-        public void ExitApp()
+        public async void ExitApp()
         {
+            // Una registrazione in corso viene salvata prima di uscire.
+            if (Recorder.IsRecording)
+                await Recorder.StopAsync();
             Settings.Save();
             _hotkeys?.Dispose();
             if (_tray != null)

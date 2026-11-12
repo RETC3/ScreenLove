@@ -23,7 +23,7 @@ namespace ScreenLove.Workspace
             Icon = IconFactory.AppImageSource;
             List.ItemsSource = App.Store.Items;
             App.Store.Items.CollectionChanged += (_, _) => UpdateEmptyState();
-            DelayButton.Content = $"Con ritardo ({App.Settings.DelaySeconds} s)";
+            DelayButton.Content = $"Ritardo {App.Settings.DelaySeconds} s";
             UpdateEmptyState();
             UpdateStatus();
         }
@@ -92,9 +92,37 @@ namespace ScreenLove.Workspace
         private async void CaptureText_Click(object sender, RoutedEventArgs e) =>
             await RunCaptureAsync(() => App.Capture.CaptureTextAsync());
 
+        private async void RecordVideo_Click(object sender, RoutedEventArgs e)
+        {
+            if (App.Recorder.IsRecording)
+            {
+                await App.Recorder.StopAsync();
+                return;
+            }
+            // Il workspace resta nascosto per tutta la registrazione (riappare quando il video è salvato).
+            Hide();
+            await Task.Delay(250);
+            await App.Recorder.StartAsync();
+            if (!App.Recorder.IsRecording)
+                ShowAndActivate(null);
+        }
+
+        /// <summary>Apre un video nel lettore predefinito di Windows.</summary>
+        private static void OpenVideo(CaptureItem item)
+        {
+            if (File.Exists(item.Path))
+                Process.Start(new ProcessStartInfo(item.Path) { UseShellExecute = true });
+        }
+
+        private static void Open(CaptureItem item)
+        {
+            if (item.IsVideo) OpenVideo(item);
+            else App.Current.OpenEditor(item.Path);
+        }
+
         private void ExtractText_Click(object sender, RoutedEventArgs e)
         {
-            if (Selected.FirstOrDefault() is not { } item) return;
+            if (Selected.FirstOrDefault(i => !i.IsVideo) is not { } item) return;
             try
             {
                 App.Current.ShowTextRecognition(ImageIO.LoadNormalized(item.Path));
@@ -113,7 +141,7 @@ namespace ScreenLove.Workspace
         private void Edit_Click(object sender, RoutedEventArgs e)
         {
             foreach (var item in Selected.Take(5))
-                App.Current.OpenEditor(item.Path);
+                Open(item);
         }
 
         private void Copy_Click(object sender, RoutedEventArgs e)
@@ -126,10 +154,11 @@ namespace ScreenLove.Workspace
                 var files = new System.Collections.Specialized.StringCollection();
                 files.AddRange(items.Select(i => i.Path).ToArray());
                 data.SetFileDropList(files);
-                if (items.Length == 1)
+                bool singleImage = items.Length == 1 && !items[0].IsVideo;
+                if (singleImage)
                     data.SetImage(ImageIO.LoadNormalized(items[0].Path));
                 Clipboard.SetDataObject(data, true);
-                StatusText.Text = items.Length == 1 ? "Immagine copiata negli appunti." : $"{items.Length} file copiati negli appunti.";
+                StatusText.Text = singleImage ? "Immagine copiata negli appunti." : $"{items.Length} file copiati negli appunti.";
             }
             catch (Exception ex)
             {
@@ -168,7 +197,7 @@ namespace ScreenLove.Workspace
         private void List_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (ItemUnderMouse(e) is { } item)
-                App.Current.OpenEditor(item.Path);
+                Open(item);
         }
 
         private void List_KeyDown(object sender, KeyEventArgs e)

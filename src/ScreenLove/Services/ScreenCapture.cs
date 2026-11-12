@@ -109,7 +109,8 @@ namespace ScreenLove.Services
             return pixels;
         }
 
-        private static void DrawCursor(D.Graphics g, int originX, int originY)
+        /// <summary>Disegna il cursore del mouse (se visibile) su una cattura con origine in originX/originY.</summary>
+        public static void DrawCursor(D.Graphics g, int originX, int originY)
         {
             var info = new NativeMethods.CURSORINFO { cbSize = Marshal.SizeOf<NativeMethods.CURSORINFO>() };
             if (!NativeMethods.GetCursorInfo(ref info) || info.flags != 1 /* CURSOR_SHOWING */)
