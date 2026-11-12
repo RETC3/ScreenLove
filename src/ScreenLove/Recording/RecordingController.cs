@@ -17,6 +17,16 @@ namespace ScreenLove.Recording
         private RecordingBarWindow? _bar;
         private string? _path;
         private bool _busy;
+        private WebcamWindow? _webcam;
+
+        private async Task CloseWebcamAsync()
+        {
+            if (_webcam == null) return;
+            var w = _webcam;
+            _webcam = null;
+            await w.StopCameraAsync();
+            w.Close();
+        }
 
         public RecordingController(AppSettings settings, CaptureStore store)
         {
@@ -52,6 +62,14 @@ namespace ScreenLove.Recording
                 if (region.Width < 16 || region.Height < 16)
                     return;
 
+                if (_settings.RecordWebcam)
+                {
+                    var (webcam, error) = await WebcamWindow.OpenAsync(region);
+                    _webcam = webcam;
+                    if (error != null)
+                        Message?.Invoke("Webcam non disponibile", "La registrazione continua senza webcam: " + error);
+                }
+
                 await CountdownWindow.RunAsync(3);
 
                 _path = _store.NewPath(".mp4");
@@ -73,6 +91,7 @@ namespace ScreenLove.Recording
                 {
                     _recorder = null;
                     TryDelete(_path);
+                    await CloseWebcamAsync();
                     Message?.Invoke("Registrazione non avviata", ex.Message);
                     return;
                 }
@@ -123,6 +142,7 @@ namespace ScreenLove.Recording
                 try
                 {
                     await recorder.StopAsync();
+                    await CloseWebcamAsync();
                 }
                 catch (Exception ex)
                 {
@@ -143,6 +163,7 @@ namespace ScreenLove.Recording
             }
             finally
             {
+                await CloseWebcamAsync();
                 _bar?.Close();
                 _bar = null;
                 _recorder = null;

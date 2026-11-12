@@ -40,11 +40,17 @@ namespace ScreenLove.Services
             return IntPtr.Zero;
         }
 
-        public void Dispose()
+        /// <summary>Libera tutti i tasti (es. mentre l'utente ne sceglie di nuovi nelle impostazioni).</summary>
+        public void UnregisterAll()
         {
             foreach (var id in _actions.Keys)
                 NativeMethods.UnregisterHotKey(_source.Handle, id);
             _actions.Clear();
+        }
+
+        public void Dispose()
+        {
+            UnregisterAll();
             _source.Dispose();
         }
     }

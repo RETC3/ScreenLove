@@ -1,0 +1,78 @@
+<Window x:Class="ScreenLove.Documents.DocumentWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ScreenLove — Crea documento" Width="960" Height="760" MinWidth="640" MinHeight="420"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource FgBrush}"
+        WindowStartupLocation="CenterOwner" FontFamily="Segoe UI" FontSize="13">
+    <Window.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#15161A"/>
+            <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}"/>
+            <Setter Property="CaretBrush" Value="White"/>
+            <Setter Property="Padding" Value="6,4"/>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="14,10"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Titolo" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,10,0"/>
+                <TextBox x:Name="TitleBox" Grid.Column="1" FontSize="15"/>
+                <CheckBox x:Name="NumberBox" Grid.Column="2" Content="Numera i passaggi" IsChecked="True"
+                          Foreground="{StaticResource FgBrush}" VerticalAlignment="Center" Margin="16,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" Padding="10,6"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <TextBlock Text="Formato" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="FormatBox" Width="150" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Button Style="{StaticResource ToolButton}" Click="Close_Click" Content="Chiudi"/>
+                    <Button Style="{StaticResource AccentButton}" Click="Create_Click" x:Name="CreateButton" Content="Crea documento"/>
+                </StackPanel>
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" TextTrimming="CharacterEllipsis"/>
+            </DockPanel>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Background="{StaticResource CanvasBrush}">
+            <ItemsControl x:Name="StepsList" Margin="14,10">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{StaticResource PanelBrush}" CornerRadius="8" Padding="12" Margin="0,6">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="230"/>
+                                    <ColumnDefinition Width="14"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Background="#15161A" CornerRadius="5" Height="140">
+                                    <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                </Border>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="{Binding Label}" Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                    <TextBox Text="{Binding Step.Title, UpdateSourceTrigger=PropertyChanged}" ToolTip="Titolo del passaggio"/>
+                                    <TextBox Text="{Binding Step.Comment, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" Height="78"
+                                             AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" ToolTip="Commento o istruzioni"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="8,0,0,0">
+                                    <Button Style="{StaticResource ToolButton}" Click="Up_Click" Tag="{Binding}" Content="▲" ToolTip="Sposta su"/>
+                                    <Button Style="{StaticResource ToolButton}" Click="Down_Click" Tag="{Binding}" Content="▼" ToolTip="Sposta giù"/>
+                                    <Button Style="{StaticResource ToolButton}" Click="Remove_Click" Tag="{Binding}" Content="✕" ToolTip="Togli dal documento"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

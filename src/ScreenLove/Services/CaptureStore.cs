@@ -127,7 +127,15 @@ namespace ScreenLove.Services
             Folder = folder;
         }
 
-        public string Folder { get; }
+        public string Folder { get; private set; }
+
+        /// <summary>Cambia la cartella delle catture e ricarica lo storico.</summary>
+        public void SetFolder(string folder)
+        {
+            if (string.Equals(folder, Folder, StringComparison.OrdinalIgnoreCase)) return;
+            Folder = folder;
+            Load();
+        }
         public ObservableCollection<CaptureItem> Items { get; } = new();
 
         public void Load()

@@ -19,11 +19,23 @@
                     <Button Style="{StaticResource ToolButton}" Click="CaptureDelayed_Click" ToolTip="Maiusc+Stamp" x:Name="DelayButton" Content="Ritardo"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                    <Button Style="{StaticResource ToolButton}" Click="Edit_Click" Content="Modifica"/>
-                    <Button Style="{StaticResource ToolButton}" Click="ExtractText_Click" ToolTip="Riconosce testo e QR code nella cattura selezionata" Content="Estrai testo"/>
+                    <Button Style="{StaticResource ToolButton}" Click="Edit_Click" ToolTip="Immagini: editor · video: taglio" Content="Modifica"/>
                     <Button Style="{StaticResource ToolButton}" Click="Copy_Click" Content="Copia"/>
                     <Button Style="{StaticResource ToolButton}" Click="Delete_Click" Content="Elimina"/>
-                    <Button Style="{StaticResource ToolButton}" Click="OpenFolder_Click" Content="Cartella"/>
+                    <Button Style="{StaticResource ToolButton}" Click="More_Click" x:Name="MoreButton" Content="Altro ▾">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Crea documento (PDF, Word, HTML)…" Click="CreateDocument_Click"/>
+                                <MenuItem Header="Estrai testo (OCR)" Click="ExtractText_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Taglia video…" Click="TrimVideo_Click"/>
+                                <MenuItem Header="Unisci i video selezionati…" Click="MergeVideos_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Apri la cartella delle catture" Click="OpenFolder_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                    <Button Style="{StaticResource ToolButton}" Click="Settings_Click" ToolTip="Impostazioni" Content="⚙" FontSize="15"/>
                 </StackPanel>
             </DockPanel>
         </Border>
@@ -95,6 +107,9 @@
                     <ContextMenu>
                         <MenuItem Header="Modifica" Click="Edit_Click" InputGestureText="Invio"/>
                         <MenuItem Header="Estrai testo (OCR)" Click="ExtractText_Click"/>
+                        <MenuItem Header="Crea documento…" Click="CreateDocument_Click"/>
+                        <MenuItem Header="Taglia video…" Click="TrimVideo_Click"/>
+                        <MenuItem Header="Unisci i video selezionati…" Click="MergeVideos_Click"/>
                         <MenuItem Header="Copia immagine" Click="Copy_Click" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Copia percorso" Click="CopyPath_Click"/>
                         <MenuItem Header="Mostra in Esplora risorse" Click="ShowInExplorer_Click"/>

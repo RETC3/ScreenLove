@@ -8,8 +8,13 @@
     <DockPanel>
         <!-- strumenti -->
         <Border DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="6,5">
-            <DockPanel LastChildFill="False">
-                <StackPanel x:Name="ToolPanel" Orientation="Horizontal" DockPanel.Dock="Left">
+            <!-- gli strumenti vanno a capo se la finestra è stretta; i comandi a destra restano sempre visibili -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <WrapPanel x:Name="ToolPanel" Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Select" ToolTip="Seleziona e sposta (V)" Checked="Tool_Checked" Content="↖  Seleziona"/>
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Arrow" ToolTip="Freccia (A) · Maiusc: angoli di 45°" Checked="Tool_Checked" Content="➜  Freccia"/>
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Rectangle" ToolTip="Rettangolo (R) · Maiusc: quadrato" Checked="Tool_Checked" Content="▢  Rettangolo"/>
@@ -20,16 +25,29 @@
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Blur" ToolTip="Sfoca / pixela dati sensibili (B)" Checked="Tool_Checked" Content="▦  Sfoca"/>
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Spotlight" ToolTip="Spotlight: oscura il resto (S)" Checked="Tool_Checked" Content="◎  Spotlight"/>
                     <RadioButton GroupName="tools" Style="{StaticResource ToolToggle}" Tag="Crop" ToolTip="Ritaglia (C)" Checked="Tool_Checked" Content="⛶  Ritaglia"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                </WrapPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top" Margin="8,0,0,0">
                     <Button x:Name="UndoButton" Style="{StaticResource ToolButton}" Click="Undo_Click" ToolTip="Annulla (Ctrl+Z)" Content="↶"/>
                     <Button x:Name="RedoButton" Style="{StaticResource ToolButton}" Click="Redo_Click" ToolTip="Ripeti (Ctrl+Y)" Content="↷"/>
+                    <Button Style="{StaticResource ToolButton}" Click="Effects_Click" x:Name="EffectsButton" ToolTip="Effetti sull'intera immagine (annullabili con Ctrl+Z)" Content="Effetti ▾">
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Ombra" Click="EffectShadow_Click"/>
+                                <MenuItem Header="Angoli arrotondati" Click="EffectRound_Click"/>
+                                <MenuItem Header="Bordo (colore e spessore correnti)" Click="EffectBorder_Click"/>
+                                <MenuItem Header="Bordo inferiore strappato" Click="EffectTorn_Click"/>
+                                <MenuItem Header="Watermark (testo dalle impostazioni)" Click="EffectWatermark_Click"/>
+                                <Separator/>
+                                <MenuItem Header="Stile documentazione (angoli + ombra)" Click="EffectDoc_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                     <Button Style="{StaticResource ToolButton}" Click="ExtractText_Click" ToolTip="Riconosce testo e QR code nell'immagine" Content="Estrai testo"/>
                     <Button Style="{StaticResource ToolButton}" Click="Copy_Click" ToolTip="Copia negli appunti (Ctrl+C)" Content="Copia"/>
                     <Button Style="{StaticResource ToolButton}" Click="SaveAs_Click" ToolTip="Salva come… (Ctrl+Maiusc+S)" Content="Salva come"/>
                     <Button Style="{StaticResource AccentButton}" Click="Save_Click" ToolTip="Salva (Ctrl+S)" Content="Salva"/>
                 </StackPanel>
-            </DockPanel>
+            </Grid>
         </Border>
 
         <!-- proprietà -->

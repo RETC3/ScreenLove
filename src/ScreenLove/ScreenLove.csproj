@@ -27,6 +27,9 @@
     <PackageReference Include="ZXing.Net" Version="0.16.9" />
     <!-- Cattura audio WASAPI (sistema in loopback + microfono), MIT -->
     <PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
+    <!-- Generatore di documenti: PDF (MIT) e Word .docx (MIT) -->
+    <PackageReference Include="PDFsharp" Version="6.1.1" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
   </ItemGroup>
 
 </Project>

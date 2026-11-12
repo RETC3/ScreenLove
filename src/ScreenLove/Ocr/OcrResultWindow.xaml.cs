@@ -20,6 +20,7 @@ namespace ScreenLove.Ocr
         public OcrResultWindow(BitmapSource image)
         {
             InitializeComponent();
+            Services.WindowFit.Apply(this);
             Icon = IconFactory.AppImageSource;
             _image = image;
             Preview.Source = image;

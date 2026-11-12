@@ -29,8 +29,20 @@ ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRE
     e sincronizzati col video (scarto misurato < 60 ms, anche dopo una pausa)
   - cornice attorno alla zona e barra con tempo, Pausa/Riprendi, Stop, Annulla: non compaiono nel video
   - codifica hardware quando disponibile (Media Foundation tramite il MediaTranscoder di Windows)
-- Se un tasto è già occupato (es. da un'altra app di cattura) si usano `Ctrl+Alt+A` / `Ctrl+Alt+F` / `Ctrl+Alt+S` / `Ctrl+Alt+T`
+  - webcam opzionale: bolla rotonda trascinabile nell'angolo della zona, registrata nel video
+- Tutti i tasti rapidi sono personalizzabili nelle Impostazioni; quelli già occupati da altre app vengono segnalati
 - Multi-monitor e DPI per-monitor
+
+**Video (workspace → Modifica, o Altro ▾)**
+- **Taglia**: anteprima con riproduzione, `[ Inizio qui` / `Fine qui ]` (tasti `I` / `O`, frecce = un fotogramma),
+  salva un nuovo video senza toccare l'originale
+- **Unisci** più video selezionati (dal più vecchio al più recente); se il motore di montaggio di Windows
+  non è disponibile (es. macchine virtuali) si usa automaticamente un metodo di riserva
+
+**Documenti (workspace → Altro ▾ → Crea documento)**
+- Da una o più immagini: titolo del documento, titolo e commento per ogni passaggio, ordine modificabile,
+  numerazione automatica
+- Formati: **PDF** (PDFsharp), **Word .docx** (Open XML SDK), **HTML** autonomo con immagini incorporate
 
 **Workspace**
 - Storico di tutte le catture (`Immagini\ScreenLove`), miniature, selezione multipla
@@ -43,8 +55,13 @@ ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRE
   Sfocatura/pixel (`B`), Spotlight (`S`), Ritaglio (`C`), Seleziona/sposta (`V`)
 - Colore e spessore modificabili anche sull'elemento selezionato, `Maiusc` per vincolare forme e angoli
 - Annulla/Ripeti, zoom (`Ctrl`+rotellina), Copia, Salva (sovrascrive la cattura), Salva come PNG/JPG/BMP
+- **Effetti** sull'intera immagine (annullabili): ombra, angoli arrotondati, bordo, bordo inferiore strappato,
+  watermark, "stile documentazione" (angoli + ombra). La trasparenza resta nei PNG; in JPG diventa bianco.
 
-**Area di notifica**: menu con catture, opzioni (appunti, editor/workspace dopo la cattura, cursore) e avvio con Windows.
+**Impostazioni** (⚙ nel workspace o menu dell'icona): cartella delle catture, avvio con Windows, comportamento
+dopo la cattura, ritardo, video (fps, audio di sistema, microfono, cursore, webcam), testo del watermark, tasti rapidi.
+
+**Area di notifica**: menu con catture, opzioni rapide, impostazioni e avvio con Windows.
 
 ## Compilare ed eseguire
 
@@ -76,6 +93,16 @@ La cartella `dist\` non è nel repository.
 
 L'icona dell'eseguibile (`src/ScreenLove/app.ico`) si rigenera con `scripts\make-icon.ps1`.
 
+### Controlli automatici
+
+```bash
+dotnet run --project tests/ScreenLove.Checks
+```
+
+Verificano tasti rapidi, impostazioni, effetti immagine, documenti PDF/Word/HTML (Word validato con l'Open XML SDK),
+registrazione, taglio e unione video (anche con audio, tramite clip sintetiche). Con `--no-video` si salta la parte
+video, che registra 3 secondi dell'angolo in alto a sinistra dello schermo. Codice di uscita = numero di errori.
+
 Diagnostica della cattura a scorrimento: con la variabile d'ambiente `SCREENLOVE_SCROLL_DEBUG`
 impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono salvati lì.
 
@@ -87,14 +114,17 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `Services/` | cattura GDI, ricerca finestre, tasti rapidi globali, storico, I/O immagini, icona |
 | `Workspace/` | finestra dello storico |
 | `Recording/` | registrazione video: cattura fotogrammi, mixer audio (NAudio), codifica MP4, cornice e barra di controllo |
+| `Recording/` → anche `WebcamWindow` | bolla della webcam durante la registrazione |
+| `Video/` | taglio e unione video, metodo di riserva per l'unione, finestra di taglio |
+| `Documents/` | generatore di documenti PDF / Word / HTML e relativa finestra |
+| `Options/` | finestra delle impostazioni |
 | `Ocr/` | finestra del testo riconosciuto (OCR e codici QR/a barre) |
-| `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, superficie di disegno, finestra editor |
+| `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, effetti, superficie di disegno, finestra editor |
+| `tests/ScreenLove.Checks` | controlli automatici |
 
 ## Prossimi passi (roadmap)
 
-1. Video: taglio inizio/fine, unione, webcam, cattura con Windows.Graphics.Capture (meno CPU)
+1. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
 2. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
 3. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
-4. Effetti bordo: ombra, angoli arrotondati, bordi strappati, watermark
-5. Generatore documenti (PDF/HTML/DOCX) dalle catture
-6. Condivisione (link, cloud, email), impostazioni con interfaccia, più lingue
+4. Condivisione (link, cloud, email), più lingue, installer

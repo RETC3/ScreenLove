@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 
@@ -21,6 +22,29 @@ namespace ScreenLove
         public bool RecordCursor { get; set; } = true;
         public bool RecordSystemAudio { get; set; } = true;
         public bool RecordMicrophone { get; set; } = false;
+        public bool RecordWebcam { get; set; } = false;
+
+        // Editor
+        public string WatermarkText { get; set; } = "ScreenLove";
+
+        /// <summary>Tasti rapidi: nome dell'azione → combinazione (vedi Services.HotkeyBinding).</summary>
+        public Dictionary<string, string> Hotkeys { get; set; } = new();
+
+        public Services.HotkeyBinding GetHotkey(Services.HotkeyAction action) =>
+            Services.HotkeyBinding.Parse(Hotkeys.TryGetValue(action.ToString(), out var s) ? s : Services.HotkeyBinding.Defaults[action]);
+
+        public void SetHotkey(Services.HotkeyAction action, Services.HotkeyBinding binding) =>
+            Hotkeys[action.ToString()] = binding.ToString();
+
+        public AppSettings Clone() =>
+            JsonSerializer.Deserialize<AppSettings>(JsonSerializer.Serialize(this)) ?? new AppSettings();
+
+        public void CopyFrom(AppSettings other)
+        {
+            foreach (var p in typeof(AppSettings).GetProperties())
+                if (p.CanWrite) p.SetValue(this, p.GetValue(other));
+            Hotkeys = new Dictionary<string, string>(other.Hotkeys);
+        }
 
         private static string SettingsPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ScreenLove", "settings.json");

@@ -20,12 +20,79 @@ namespace ScreenLove.Workspace
         public WorkspaceWindow()
         {
             InitializeComponent();
+            Services.WindowFit.Apply(this);
             Icon = IconFactory.AppImageSource;
             List.ItemsSource = App.Store.Items;
             App.Store.Items.CollectionChanged += (_, _) => UpdateEmptyState();
-            DelayButton.Content = $"Ritardo {App.Settings.DelaySeconds} s";
+            RefreshLabels();
             UpdateEmptyState();
+        }
+
+        /// <summary>Aggiorna etichette e barra di stato dopo un cambio di impostazioni.</summary>
+        public void RefreshLabels()
+        {
+            DelayButton.Content = $"Ritardo {App.Settings.DelaySeconds} s";
             UpdateStatus();
+        }
+
+        private void Settings_Click(object sender, RoutedEventArgs e) => App.Current.OpenSettings();
+
+        private void More_Click(object sender, RoutedEventArgs e)
+        {
+            MoreButton.ContextMenu.PlacementTarget = MoreButton;
+            MoreButton.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            MoreButton.ContextMenu.IsOpen = true;
+        }
+
+        private void CreateDocument_Click(object sender, RoutedEventArgs e)
+        {
+            var images = Selected.Where(i => !i.IsVideo).Select(i => i.Path).ToList();
+            if (images.Count == 0)
+            {
+                StatusText.Text = "Seleziona una o più immagini per creare un documento.";
+                return;
+            }
+            new Documents.DocumentWindow(images) { Owner = this }.Show();
+        }
+
+        private void TrimVideo_Click(object sender, RoutedEventArgs e)
+        {
+            if (Selected.FirstOrDefault(i => i.IsVideo) is not { } item)
+            {
+                StatusText.Text = "Seleziona un video da tagliare.";
+                return;
+            }
+            new Video.VideoTrimWindow(item.Path) { Owner = this }.Show();
+        }
+
+        private async void MergeVideos_Click(object sender, RoutedEventArgs e)
+        {
+            // Ordine di unione: dal più vecchio al più recente.
+            var videos = Selected.Where(i => i.IsVideo).OrderBy(i => i.Created).Select(i => i.Path).ToList();
+            if (videos.Count < 2)
+            {
+                StatusText.Text = "Seleziona almeno due video da unire (Ctrl+clic).";
+                return;
+            }
+            StatusText.Text = $"Unione di {videos.Count} video in corso…";
+            IsEnabled = false;
+            try
+            {
+                string output = App.Store.NewPath(".mp4");
+                await Video.VideoEditing.MergeAsync(videos, output,
+                    p => Dispatcher.BeginInvoke(() => StatusText.Text = $"Unione di {videos.Count} video… {p:P0}"));
+                App.Store.Refresh(output);
+                ShowAndActivate(output);
+                StatusText.Text = "Video uniti: " + Path.GetFileName(output);
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Unione non riuscita: " + ex.Message;
+            }
+            finally
+            {
+                IsEnabled = true;
+            }
         }
 
         public void ShowAndActivate(string? selectPath)
@@ -141,7 +208,10 @@ namespace ScreenLove.Workspace
         private void Edit_Click(object sender, RoutedEventArgs e)
         {
             foreach (var item in Selected.Take(5))
-                Open(item);
+            {
+                if (item.IsVideo) new Video.VideoTrimWindow(item.Path) { Owner = this }.Show();
+                else App.Current.OpenEditor(item.Path);
+            }
         }
 
         private void Copy_Click(object sender, RoutedEventArgs e)

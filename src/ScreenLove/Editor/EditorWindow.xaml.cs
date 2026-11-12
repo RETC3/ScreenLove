@@ -54,6 +54,7 @@ namespace ScreenLove.Editor
         public EditorWindow(string path)
         {
             InitializeComponent();
+            Services.WindowFit.Apply(this);
             Icon = IconFactory.AppImageSource;
             _path = path;
             _doc = new EditorDocument(ImageIO.LoadNormalized(path));
@@ -314,6 +315,65 @@ namespace ScreenLove.Editor
         }
 
         private void Copy_Click(object sender, RoutedEventArgs e) => CopyToClipboard();
+
+        // ---------- effetti ----------
+
+        private void Effects_Click(object sender, RoutedEventArgs e)
+        {
+            EffectsButton.ContextMenu.PlacementTarget = EffectsButton;
+            EffectsButton.ContextMenu.Placement = PlacementMode.Bottom;
+            EffectsButton.ContextMenu.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Applica un effetto all'immagine finale: le annotazioni vengono fissate nell'immagine
+        /// (Annulla le riporta modificabili).
+        /// </summary>
+        private void ApplyEffect(string name, Func<System.Windows.Media.Imaging.BitmapSource, System.Windows.Media.Imaging.BitmapSource> effect)
+        {
+            CommitText();
+            Layer.CancelInteraction();
+            try
+            {
+                var result = effect(ImageIO.Normalize(_doc.Flatten()));
+                PushUndo();
+                _doc.Items = new List<Annotation>();
+                _doc.SetBase(result);
+                Layer.Selected = null;
+                RefreshImage();
+                ZoomToFit();
+                StatusText.Text = $"Effetto applicato: {name}  ·  Ctrl+Z per annullare";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Effetto non riuscito: " + ex.Message;
+            }
+        }
+
+        private void EffectShadow_Click(object sender, RoutedEventArgs e) =>
+            ApplyEffect("ombra", img => ImageEffects.AddShadow(img));
+
+        private void EffectRound_Click(object sender, RoutedEventArgs e) =>
+            ApplyEffect("angoli arrotondati", img => ImageEffects.RoundCorners(img, 12));
+
+        private void EffectBorder_Click(object sender, RoutedEventArgs e) =>
+            ApplyEffect("bordo", img => ImageEffects.AddBorder(img, (int)Math.Max(1, Layer.CurrentThickness), Layer.CurrentColor));
+
+        private void EffectTorn_Click(object sender, RoutedEventArgs e) =>
+            ApplyEffect("bordo strappato", ImageEffects.TornBottomEdge);
+
+        private void EffectWatermark_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(App.Settings.WatermarkText))
+            {
+                StatusText.Text = "Imposta il testo del watermark nelle Impostazioni.";
+                return;
+            }
+            ApplyEffect("watermark", img => ImageEffects.AddWatermark(img, App.Settings.WatermarkText));
+        }
+
+        private void EffectDoc_Click(object sender, RoutedEventArgs e) =>
+            ApplyEffect("stile documentazione", img => ImageEffects.AddShadow(ImageEffects.RoundCorners(img, 10)));
 
         private void ExtractText_Click(object sender, RoutedEventArgs e)
         {

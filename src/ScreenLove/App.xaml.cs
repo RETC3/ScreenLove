@@ -16,7 +16,6 @@ namespace ScreenLove
 {
     public partial class App : Application
     {
-        private const uint VK_SNAPSHOT = 0x2C;
         private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
         private Mutex? _mutex;
@@ -81,38 +80,76 @@ namespace ScreenLove
 
         // ---------- tasti rapidi ----------
 
+        /// <summary>Tasti che non è stato possibile registrare (già usati da un'altra app).</summary>
+        public static IReadOnlyList<HotkeyAction> FailedHotkeys { get; private set; } = Array.Empty<HotkeyAction>();
+
+        private Action ActionFor(HotkeyAction a) => a switch
+        {
+            HotkeyAction.Region => () => _ = Capture.CaptureRegionAsync(),
+            HotkeyAction.FullScreen => () => _ = Capture.CaptureFullScreenAsync(),
+            HotkeyAction.Scrolling => () => _ = Capture.CaptureScrollingAsync(),
+            HotkeyAction.Text => () => _ = Capture.CaptureTextAsync(),
+            HotkeyAction.Video => () => _ = Recorder.ToggleAsync(),
+            HotkeyAction.Delayed => () => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds),
+            _ => () => { },
+        };
+
+        /// <summary>(Ri)registra i tasti rapidi letti dalle impostazioni.</summary>
+        public void RegisterHotkeys()
+        {
+            _hotkeys ??= new HotkeyManager();
+            _hotkeys.UnregisterAll();
+            var lines = new List<string>();
+            var failed = new List<HotkeyAction>();
+
+            foreach (var action in Enum.GetValues<HotkeyAction>())
+            {
+                var binding = Settings.GetHotkey(action);
+                if (binding.IsEmpty) continue;
+                if (_hotkeys.Register(binding.NativeModifiers, binding.VirtualKey, ActionFor(action)))
+                    lines.Add($"{binding.Display}: {HotkeyBinding.Describe(action).ToLowerInvariant()}");
+                else
+                    failed.Add(action);
+            }
+
+            FailedHotkeys = failed;
+            HotkeySummary = lines.Count > 0 ? string.Join("\n", lines) : "Nessun tasto rapido attivo: usa l'icona nell'area di notifica.";
+        }
+
+        /// <summary>Sospende i tasti rapidi (serve mentre se ne sceglie uno nuovo).</summary>
+        public void SuspendHotkeys() => _hotkeys?.UnregisterAll();
+
         private void SetupHotkeys()
         {
-            _hotkeys = new HotkeyManager();
-            var lines = new List<string>();
+            RegisterHotkeys();
+            if (FailedHotkeys.Count > 0)
+                Dispatcher.BeginInvoke(() => Notify("Alcuni tasti rapidi sono occupati",
+                    string.Join(", ", FailedHotkeys.Select(a => Settings.GetHotkey(a).Display)) +
+                    " · cambiali in Impostazioni."));
+        }
 
-            if (_hotkeys.Register(0, VK_SNAPSHOT, () => _ = Capture.CaptureRegionAsync()))
-                lines.Add("Stamp: cattura area/finestra");
-            else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'A', () => _ = Capture.CaptureRegionAsync()))
-                lines.Add("Ctrl+Alt+A: cattura area/finestra (Stamp è occupato)");
+        private Options.SettingsWindow? _settingsWindow;
 
-            if (_hotkeys.Register(NativeMethods.MOD_CONTROL, VK_SNAPSHOT, () => _ = Capture.CaptureFullScreenAsync()))
-                lines.Add("Ctrl+Stamp: schermo intero");
-            else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'F', () => _ = Capture.CaptureFullScreenAsync()))
-                lines.Add("Ctrl+Alt+F: schermo intero");
+        public void OpenSettings()
+        {
+            if (_settingsWindow != null)
+            {
+                _settingsWindow.Activate();
+                return;
+            }
+            _settingsWindow = new Options.SettingsWindow();
+            _settingsWindow.Closed += (_, _) => _settingsWindow = null;
+            _settingsWindow.Show();
+            _settingsWindow.Activate();
+        }
 
-            if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_SHIFT, VK_SNAPSHOT, () => _ = Capture.CaptureScrollingAsync()))
-                lines.Add("Ctrl+Maiusc+Stamp: a scorrimento");
-            else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'S', () => _ = Capture.CaptureScrollingAsync()))
-                lines.Add("Ctrl+Alt+S: a scorrimento");
-
-            if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, VK_SNAPSHOT, () => _ = Capture.CaptureTextAsync()))
-                lines.Add("Ctrl+Alt+Stamp: testo (OCR)");
-            else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'T', () => _ = Capture.CaptureTextAsync()))
-                lines.Add("Ctrl+Alt+T: testo (OCR)");
-
-            if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'R', () => _ = Recorder.ToggleAsync()))
-                lines.Add("Ctrl+Alt+R: avvia/ferma video");
-
-            if (_hotkeys.Register(NativeMethods.MOD_SHIFT, VK_SNAPSHOT, () => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds)))
-                lines.Add($"Maiusc+Stamp: cattura con ritardo di {Settings.DelaySeconds} s");
-
-            HotkeySummary = lines.Count > 0 ? string.Join("\n", lines) : "Nessun tasto rapido disponibile: usa l'icona nell'area di notifica.";
+        /// <summary>Applica le impostazioni salvate dalla finestra delle impostazioni.</summary>
+        public void ApplySettings()
+        {
+            Settings.Save();
+            Store.SetFolder(Settings.CapturesFolder);
+            RegisterHotkeys();
+            _workspace?.RefreshLabels();
         }
 
         // ---------- area di notifica ----------
@@ -128,7 +165,7 @@ namespace ScreenLove
             recordItem.Click += (_, _) => _ = Recorder.ToggleAsync();
             menu.Opening += (_, _) => recordItem.Text = Recorder.IsRecording ? "Ferma e salva il video" : "Registra video";
             menu.Items.Add(recordItem);
-            menu.Items.Add($"Cattura con ritardo ({Settings.DelaySeconds} s)", null, (_, _) => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds));
+            menu.Items.Add("Cattura con ritardo", null, (_, _) => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds));
             menu.Items.Add(new WF.ToolStripSeparator());
             menu.Items.Add("Apri workspace", null, (_, _) => ShowWorkspace());
             menu.Items.Add("Apri cartella catture", null, (_, _) => OpenCapturesFolder());
@@ -142,6 +179,7 @@ namespace ScreenLove
             AddToggle(menu, "Video: mostra il cursore", () => Settings.RecordCursor, v => Settings.RecordCursor = v);
             AddToggle(menu, "Avvia con Windows", IsAutostartEnabled, SetAutostart);
             menu.Items.Add(new WF.ToolStripSeparator());
+            menu.Items.Add("Impostazioni…", null, (_, _) => OpenSettings());
             menu.Items.Add("Esci", null, (_, _) => ExitApp());
 
             _tray = new WF.NotifyIcon
@@ -213,13 +251,13 @@ namespace ScreenLove
             Process.Start(new ProcessStartInfo("explorer.exe", $"\"{Store.Folder}\"") { UseShellExecute = true });
         }
 
-        private static bool IsAutostartEnabled()
+        public static bool IsAutostartEnabled()
         {
             using var key = Registry.CurrentUser.OpenSubKey(RunKey);
             return key?.GetValue("ScreenLove") != null;
         }
 
-        private static void SetAutostart(bool enabled)
+        public static void SetAutostart(bool enabled)
         {
             using var key = Registry.CurrentUser.CreateSubKey(RunKey);
             if (enabled)
