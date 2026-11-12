@@ -9,6 +9,9 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Company>ScreenLove</Company>
+    <Description>ScreenLove — cattura dello schermo</Description>
     <RootNamespace>ScreenLove</RootNamespace>
     <AssemblyName>ScreenLove</AssemblyName>
     <Product>ScreenLove</Product>
