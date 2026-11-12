@@ -50,9 +50,12 @@ L'eseguibile di sviluppo è in `src/ScreenLove/bin/Debug/net8.0-windows/ScreenLo
 
 Un unico `ScreenLove.exe` che include .NET: parte con un doppio clic, senza installare nulla.
 
-```powershell
-.\scripts\publish.ps1
+```bash
+scripts\publish
 ```
+
+(`publish.cmd` avvia `publish.ps1` aggirando solo per quel comando il blocco degli script PowerShell,
+attivo di default su Windows. Si può anche fare doppio clic su `scripts\publish.cmd`.)
 
 Risultato: `dist\win-x64\ScreenLove.exe` (~68 MB). Opzioni: `-Arm64` per i PC ARM64
 (`dist\win-arm64\`), `-Zip` per creare anche `dist\ScreenLove-<versione>-<piattaforma>.zip`.
