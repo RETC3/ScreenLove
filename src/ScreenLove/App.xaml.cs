@@ -57,6 +57,7 @@ namespace ScreenLove
             Capture.Captured += OnCaptured;
             Capture.ColorCopied += c => Notify("Colore copiato", $"{c} è negli appunti.");
             Capture.ScrollingFinished += msg => Notify("Cattura a scorrimento", msg);
+            Capture.TextAreaCaptured += ShowTextRecognition;
 
             SetupHotkeys();
             SetupTray();
@@ -89,6 +90,11 @@ namespace ScreenLove
             else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'S', () => _ = Capture.CaptureScrollingAsync()))
                 lines.Add("Ctrl+Alt+S: a scorrimento");
 
+            if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, VK_SNAPSHOT, () => _ = Capture.CaptureTextAsync()))
+                lines.Add("Ctrl+Alt+Stamp: testo (OCR)");
+            else if (_hotkeys.Register(NativeMethods.MOD_CONTROL | NativeMethods.MOD_ALT, 'T', () => _ = Capture.CaptureTextAsync()))
+                lines.Add("Ctrl+Alt+T: testo (OCR)");
+
             if (_hotkeys.Register(NativeMethods.MOD_SHIFT, VK_SNAPSHOT, () => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds)))
                 lines.Add($"Maiusc+Stamp: cattura con ritardo di {Settings.DelaySeconds} s");
 
@@ -103,6 +109,7 @@ namespace ScreenLove
             menu.Items.Add("Cattura area o finestra", null, (_, _) => _ = Capture.CaptureRegionAsync());
             menu.Items.Add("Cattura schermo intero", null, (_, _) => _ = Capture.CaptureFullScreenAsync());
             menu.Items.Add("Cattura a scorrimento", null, (_, _) => _ = Capture.CaptureScrollingAsync());
+            menu.Items.Add("Cattura testo (OCR / QR code)", null, (_, _) => _ = Capture.CaptureTextAsync());
             menu.Items.Add($"Cattura con ritardo ({Settings.DelaySeconds} s)", null, (_, _) => _ = Capture.CaptureRegionAsync(Settings.DelaySeconds));
             menu.Items.Add(new WF.ToolStripSeparator());
             menu.Items.Add("Apri workspace", null, (_, _) => ShowWorkspace());
@@ -170,6 +177,13 @@ namespace ScreenLove
             var editor = new EditorWindow(path);
             editor.Show();
             editor.Activate();
+        }
+
+        public void ShowTextRecognition(System.Windows.Media.Imaging.BitmapSource image)
+        {
+            var window = new Ocr.OcrResultWindow(image);
+            window.Show();
+            window.Activate();
         }
 
         public void OpenCapturesFolder()

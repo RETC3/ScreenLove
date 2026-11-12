@@ -24,6 +24,7 @@
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button x:Name="UndoButton" Style="{StaticResource ToolButton}" Click="Undo_Click" ToolTip="Annulla (Ctrl+Z)" Content="↶"/>
                     <Button x:Name="RedoButton" Style="{StaticResource ToolButton}" Click="Redo_Click" ToolTip="Ripeti (Ctrl+Y)" Content="↷"/>
+                    <Button Style="{StaticResource ToolButton}" Click="ExtractText_Click" ToolTip="Riconosce testo e QR code nell'immagine" Content="Estrai testo"/>
                     <Button Style="{StaticResource ToolButton}" Click="Copy_Click" ToolTip="Copia negli appunti (Ctrl+C)" Content="Copia"/>
                     <Button Style="{StaticResource ToolButton}" Click="SaveAs_Click" ToolTip="Salva come… (Ctrl+Maiusc+S)" Content="Salva come"/>
                     <Button Style="{StaticResource AccentButton}" Click="Save_Click" ToolTip="Salva (Ctrl+S)" Content="Salva"/>

@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- Windows 10 2004+: serve per le API WinRT (OCR di Windows) -->
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
@@ -19,5 +21,10 @@
     <!-- Il DPI è dichiarato nel manifest: l'host è WPF, non WinForms -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lettura di codici QR e a barre (Apache 2.0) -->
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
+  </ItemGroup>
 
 </Project>

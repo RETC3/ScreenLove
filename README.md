@@ -17,8 +17,13 @@ ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRE
   - tollera lo scorrimento animato e a frazioni di pixel dei browser
   - adatta da solo quanto scorrere per volta; si ferma a fine pagina, con `Esc` o a 40.000 px
   - l'indicatore di avanzamento è escluso dalle catture
+- `Ctrl+Alt+Stamp`: **testo (OCR) e QR code**. Si seleziona una zona: il testo viene riconosciuto
+  con l'OCR integrato in Windows (offline, lingue installate nel sistema) e copiato negli appunti;
+  QR code, Data Matrix e codici a barre vengono letti con ZXing.Net (link apribili con un clic).
+  Nella finestra del risultato si può cambiare lingua, modificare il testo e unire le righe.
+  Disponibile anche come "Estrai testo" su una cattura del workspace o nell'editor.
 - `Maiusc+Stamp`: cattura con conto alla rovescia (per menu contestuali)
-- Se un tasto è già occupato (es. da un'altra app di cattura) si usano `Ctrl+Alt+A` / `Ctrl+Alt+F` / `Ctrl+Alt+S`
+- Se un tasto è già occupato (es. da un'altra app di cattura) si usano `Ctrl+Alt+A` / `Ctrl+Alt+F` / `Ctrl+Alt+S` / `Ctrl+Alt+T`
 - Multi-monitor e DPI per-monitor
 
 **Workspace**
@@ -57,7 +62,7 @@ scripts\publish
 (`publish.cmd` avvia `publish.ps1` aggirando solo per quel comando il blocco degli script PowerShell,
 attivo di default su Windows. Si può anche fare doppio clic su `scripts\publish.cmd`.)
 
-Risultato: `dist\win-x64\ScreenLove.exe` (~68 MB). Opzioni: `-Arm64` per i PC ARM64
+Risultato: `dist\win-x64\ScreenLove.exe` (~75 MB). Opzioni: `-Arm64` per i PC ARM64
 (`dist\win-arm64\`), `-Zip` per creare anche `dist\ScreenLove-<versione>-<piattaforma>.zip`.
 La cartella `dist\` non è nel repository.
 
@@ -73,13 +78,14 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `Capture/` | overlay di selezione, conto alla rovescia, orchestrazione della cattura |
 | `Services/` | cattura GDI, ricerca finestre, tasti rapidi globali, storico, I/O immagini, icona |
 | `Workspace/` | finestra dello storico |
+| `Ocr/` | finestra del testo riconosciuto (OCR e codici QR/a barre) |
 | `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, superficie di disegno, finestra editor |
 
 ## Prossimi passi (roadmap)
 
 1. Registrazione video MP4 (Windows.Graphics.Capture + Media Foundation), audio di sistema/microfono
 2. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
-3. OCR (Windows.Media.Ocr) e lettura QR code
+3. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
 4. Effetti bordo: ombra, angoli arrotondati, bordi strappati, watermark
 5. Generatore documenti (PDF/HTML/DOCX) dalle catture
 6. Condivisione (link, cloud, email), impostazioni con interfaccia, più lingue

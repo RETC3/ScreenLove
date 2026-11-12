@@ -14,10 +14,12 @@
                     </Button>
                     <Button Style="{StaticResource ToolButton}" Click="CaptureFull_Click" ToolTip="Ctrl+Stamp" Content="Schermo intero"/>
                     <Button Style="{StaticResource ToolButton}" Click="CaptureScrolling_Click" ToolTip="Ctrl+Maiusc+Stamp" Content="A scorrimento"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureText_Click" ToolTip="Ctrl+Alt+Stamp · riconosce testo e QR code" Content="Testo (OCR)"/>
                     <Button Style="{StaticResource ToolButton}" Click="CaptureDelayed_Click" ToolTip="Maiusc+Stamp" x:Name="DelayButton" Content="Con ritardo"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
                     <Button Style="{StaticResource ToolButton}" Click="Edit_Click" Content="Modifica"/>
+                    <Button Style="{StaticResource ToolButton}" Click="ExtractText_Click" ToolTip="Riconosce testo e QR code nella cattura selezionata" Content="Estrai testo"/>
                     <Button Style="{StaticResource ToolButton}" Click="Copy_Click" Content="Copia"/>
                     <Button Style="{StaticResource ToolButton}" Click="Delete_Click" Content="Elimina"/>
                     <Button Style="{StaticResource ToolButton}" Click="OpenFolder_Click" Content="Apri cartella"/>
@@ -82,6 +84,7 @@
                 <ListBox.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="Modifica" Click="Edit_Click" InputGestureText="Invio"/>
+                        <MenuItem Header="Estrai testo (OCR)" Click="ExtractText_Click"/>
                         <MenuItem Header="Copia immagine" Click="Copy_Click" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Copia percorso" Click="CopyPath_Click"/>
                         <MenuItem Header="Mostra in Esplora risorse" Click="ShowInExplorer_Click"/>

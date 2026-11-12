@@ -10,6 +10,7 @@
         <SolidColorBrush x:Key="FgBrush" Color="#ECECEF"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#9A9CA5"/>
         <SolidColorBrush x:Key="AccentBrush" Color="#FF3D7F"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility"/>
 
         <Style TargetType="ToolTip">
             <Setter Property="Background" Value="#30333A"/>

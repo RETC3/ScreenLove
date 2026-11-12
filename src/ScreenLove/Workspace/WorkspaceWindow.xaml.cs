@@ -89,6 +89,22 @@ namespace ScreenLove.Workspace
         private async void CaptureScrolling_Click(object sender, RoutedEventArgs e) =>
             await RunCaptureAsync(() => App.Capture.CaptureScrollingAsync());
 
+        private async void CaptureText_Click(object sender, RoutedEventArgs e) =>
+            await RunCaptureAsync(() => App.Capture.CaptureTextAsync());
+
+        private void ExtractText_Click(object sender, RoutedEventArgs e)
+        {
+            if (Selected.FirstOrDefault() is not { } item) return;
+            try
+            {
+                App.Current.ShowTextRecognition(ImageIO.LoadNormalized(item.Path));
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Impossibile aprire l'immagine: " + ex.Message;
+            }
+        }
+
         private async void CaptureDelayed_Click(object sender, RoutedEventArgs e) =>
             await RunCaptureAsync(() => App.Capture.CaptureRegionAsync(App.Settings.DelaySeconds));
 

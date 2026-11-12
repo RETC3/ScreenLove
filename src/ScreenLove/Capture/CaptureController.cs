@@ -49,6 +49,28 @@ namespace ScreenLove.Capture
             }
         }
 
+        /// <summary>Zona scelta per il riconoscimento del testo (non viene salvata nel workspace).</summary>
+        public event Action<BitmapSource>? TextAreaCaptured;
+
+        public async Task CaptureTextAsync()
+        {
+            if (_busy) return;
+            _busy = true;
+            try
+            {
+                await Task.Yield();
+                var shot = ScreenCapture.CaptureVirtualScreen(includeCursor: false);
+                var overlay = new CaptureOverlayWindow(shot, WindowFinder.GetWindowRects(shot.Bounds), WindowFinder.GetMonitorRects(shot.Bounds),
+                    "TESTO (OCR) — Trascina sul testo o su un QR code · Clic: finestra intera · Esc: annulla");
+                if (overlay.ShowDialog() == true)
+                    TextAreaCaptured?.Invoke(shot.Crop(overlay.Selection));
+            }
+            finally
+            {
+                _busy = false;
+            }
+        }
+
         /// <summary>Messaggio per l'utente al termine di una cattura a scorrimento.</summary>
         public event Action<string>? ScrollingFinished;
 

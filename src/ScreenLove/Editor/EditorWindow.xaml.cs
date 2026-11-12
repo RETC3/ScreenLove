@@ -315,6 +315,13 @@ namespace ScreenLove.Editor
 
         private void Copy_Click(object sender, RoutedEventArgs e) => CopyToClipboard();
 
+        private void ExtractText_Click(object sender, RoutedEventArgs e)
+        {
+            CommitText();
+            // Si usa l'immagine di base: le annotazioni (frecce, sfocature…) disturberebbero il riconoscimento.
+            App.Current.ShowTextRecognition(_doc.Base);
+        }
+
         private void CopyToClipboard()
         {
             CommitText();
