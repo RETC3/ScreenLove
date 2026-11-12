@@ -1,0 +1,113 @@
+<Application x:Class="ScreenLove.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             ShutdownMode="OnExplicitShutdown">
+    <Application.Resources>
+        <SolidColorBrush x:Key="BgBrush" Color="#1E1F24"/>
+        <SolidColorBrush x:Key="CanvasBrush" Color="#141518"/>
+        <SolidColorBrush x:Key="PanelBrush" Color="#26282E"/>
+        <SolidColorBrush x:Key="LineBrush" Color="#33363E"/>
+        <SolidColorBrush x:Key="FgBrush" Color="#ECECEF"/>
+        <SolidColorBrush x:Key="MutedBrush" Color="#9A9CA5"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#FF3D7F"/>
+
+        <Style TargetType="ToolTip">
+            <Setter Property="Background" Value="#30333A"/>
+            <Setter Property="Foreground" Value="#ECECEF"/>
+            <Setter Property="BorderBrush" Value="#44474F"/>
+        </Style>
+
+        <!-- Pulsante della barra strumenti -->
+        <Style x:Key="ToolButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border Background="{TemplateBinding Background}" CornerRadius="6"/>
+                            <Border x:Name="hl" Background="#1FFFFFFF" CornerRadius="6" Visibility="Collapsed"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hl" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="hl" Property="Background" Value="#33FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource ToolButton}">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Strumento selezionabile (RadioButton / ToggleButton) -->
+        <Style x:Key="ToolToggle" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="{StaticResource FgBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="9,6"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Grid>
+                            <Border x:Name="bg" Background="{TemplateBinding Background}" CornerRadius="6"/>
+                            <Border x:Name="hl" Background="#1FFFFFFF" CornerRadius="6" Visibility="Collapsed"/>
+                            <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="hl" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bg" Property="Background" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Campione di colore della tavolozza -->
+        <Style x:Key="SwatchToggle" TargetType="RadioButton">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="ring" CornerRadius="13" BorderThickness="2" BorderBrush="Transparent" Padding="2">
+                            <Ellipse Fill="{TemplateBinding Background}" Stroke="#55FFFFFF" StrokeThickness="1"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ring" Property="BorderBrush" Value="White"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,101 @@
+<Window x:Class="ScreenLove.Workspace.WorkspaceWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ScreenLove — Workspace" Width="980" Height="640" MinWidth="520" MinHeight="360"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource FgBrush}"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI">
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="8,6"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1">
+            <DockPanel LastChildFill="False">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                    <Button Style="{StaticResource AccentButton}" Click="CaptureRegion_Click" ToolTip="Stamp">
+                        <TextBlock Text="＋  Cattura area"/>
+                    </Button>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureFull_Click" ToolTip="Ctrl+Stamp" Content="Schermo intero"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureScrolling_Click" ToolTip="Ctrl+Maiusc+Stamp" Content="A scorrimento"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CaptureDelayed_Click" ToolTip="Maiusc+Stamp" x:Name="DelayButton" Content="Con ritardo"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Button Style="{StaticResource ToolButton}" Click="Edit_Click" Content="Modifica"/>
+                    <Button Style="{StaticResource ToolButton}" Click="Copy_Click" Content="Copia"/>
+                    <Button Style="{StaticResource ToolButton}" Click="Delete_Click" Content="Elimina"/>
+                    <Button Style="{StaticResource ToolButton}" Click="OpenFolder_Click" Content="Apri cartella"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" Padding="10,5"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" FontSize="12" TextTrimming="CharacterEllipsis"/>
+        </Border>
+
+        <Grid>
+            <ListBox x:Name="List" Background="Transparent" BorderThickness="0" Padding="8"
+                     SelectionMode="Extended" Foreground="{StaticResource FgBrush}"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     MouseDoubleClick="List_MouseDoubleClick"
+                     PreviewMouseLeftButtonDown="List_PreviewMouseLeftButtonDown"
+                     PreviewMouseMove="List_PreviewMouseMove"
+                     KeyDown="List_KeyDown"
+                     SelectionChanged="List_SelectionChanged">
+                <ListBox.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="4"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="card" CornerRadius="8" Padding="8" Background="#24262C"
+                                            BorderThickness="2" BorderBrush="Transparent">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="card" Property="Background" Value="#2C2F36"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Width="200" ToolTip="{Binding Path}">
+                            <Border Height="128" Background="{StaticResource CanvasBrush}" CornerRadius="5">
+                                <Image Source="{Binding Thumbnail}" Stretch="Uniform" Margin="4"
+                                       RenderOptions.BitmapScalingMode="HighQuality"/>
+                            </Border>
+                            <TextBlock Text="{Binding Name}" Margin="2,7,2,0" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding Info}" Margin="2,2,2,0" FontSize="11" Foreground="{StaticResource MutedBrush}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Modifica" Click="Edit_Click" InputGestureText="Invio"/>
+                        <MenuItem Header="Copia immagine" Click="Copy_Click" InputGestureText="Ctrl+C"/>
+                        <MenuItem Header="Copia percorso" Click="CopyPath_Click"/>
+                        <MenuItem Header="Mostra in Esplora risorse" Click="ShowInExplorer_Click"/>
+                        <Separator/>
+                        <MenuItem Header="Elimina (Cestino)" Click="Delete_Click" InputGestureText="Canc"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
+            </ListBox>
+
+            <StackPanel x:Name="EmptyHint" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+                <TextBlock Text="♥" FontSize="54" Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="Nessuna cattura per ora" FontSize="18" HorizontalAlignment="Center" Margin="0,8,0,4"/>
+                <TextBlock Text="Premi Stamp per catturare un'area o una finestra" Foreground="{StaticResource MutedBrush}" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</Window>

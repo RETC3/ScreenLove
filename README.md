@@ -1,0 +1,72 @@
+# ScreenLove ♥
+
+Strumento di cattura dello schermo per Windows (C# · .NET 8 · WPF), ispirato alle funzionalità di Screenpresso
+ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRESSO.md](docs/ANALISI-SCREENPRESSO.md).
+
+## Funzioni (v0.1)
+
+**Cattura**
+- `Stamp`: overlay a schermo intero con evidenziazione automatica della finestra sotto il cursore,
+  selezione area trascinando, lente di ingrandimento, coordinate e colore del pixel
+  - clic = finestra · trascina = area · `F` = schermo intero · frecce = sposta di 1 px
+  - `Ctrl+C` = copia il colore esadecimale (color picker) · `Esc` / clic destro = annulla
+- `Ctrl+Stamp`: schermo intero (con cursore opzionale)
+- `Ctrl+Maiusc+Stamp`: **cattura a scorrimento**. Si sceglie una finestra o una zona; ScreenLove la fa
+  scorrere con la rotellina, cattura dopo ogni scatto e cuce i fotogrammi in un'unica immagine alta
+  - riconosce intestazioni e piè di pagina fissi e li tiene una volta sola
+  - tollera lo scorrimento animato e a frazioni di pixel dei browser
+  - adatta da solo quanto scorrere per volta; si ferma a fine pagina, con `Esc` o a 40.000 px
+  - l'indicatore di avanzamento è escluso dalle catture
+- `Maiusc+Stamp`: cattura con conto alla rovescia (per menu contestuali)
+- Se un tasto è già occupato (es. da un'altra app di cattura) si usano `Ctrl+Alt+A` / `Ctrl+Alt+F` / `Ctrl+Alt+S`
+- Multi-monitor e DPI per-monitor
+
+**Workspace**
+- Storico di tutte le catture (`Immagini\ScreenLove`), miniature, selezione multipla
+- Doppio clic = editor · trascina verso altre app · copia immagine/percorso · elimina nel Cestino
+
+**Editor**
+- Freccia (`A`), Rettangolo (`R`), Ellisse (`E`), Evidenziatore (`H`), Testo (`T`), Step numerati (`N`),
+  Sfocatura/pixel (`B`), Spotlight (`S`), Ritaglio (`C`), Seleziona/sposta (`V`)
+- Colore e spessore modificabili anche sull'elemento selezionato, `Maiusc` per vincolare forme e angoli
+- Annulla/Ripeti, zoom (`Ctrl`+rotellina), Copia, Salva (sovrascrive la cattura), Salva come PNG/JPG/BMP
+
+**Area di notifica**: menu con catture, opzioni (appunti, editor/workspace dopo la cattura, cursore) e avvio con Windows.
+
+## Compilare ed eseguire
+
+```bash
+dotnet build ScreenLove.sln
+```
+
+```bash
+dotnet run --project src/ScreenLove
+```
+
+L'eseguibile è in `src/ScreenLove/bin/Debug/net8.0-windows/ScreenLove.exe` e richiede il
+.NET 8 Desktop Runtime. Per un eseguibile autonomo che non richiede il runtime:
+
+```bash
+dotnet publish src/ScreenLove -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+```
+
+Diagnostica della cattura a scorrimento: con la variabile d'ambiente `SCREENLOVE_SCROLL_DEBUG`
+impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono salvati lì.
+
+## Struttura
+
+| Cartella | Contenuto |
+|---|---|
+| `Capture/` | overlay di selezione, conto alla rovescia, orchestrazione della cattura |
+| `Services/` | cattura GDI, ricerca finestre, tasti rapidi globali, storico, I/O immagini, icona |
+| `Workspace/` | finestra dello storico |
+| `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, superficie di disegno, finestra editor |
+
+## Prossimi passi (roadmap)
+
+1. Registrazione video MP4 (Windows.Graphics.Capture + Media Foundation), audio di sistema/microfono
+2. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
+3. OCR (Windows.Media.Ocr) e lettura QR code
+4. Effetti bordo: ombra, angoli arrotondati, bordi strappati, watermark
+5. Generatore documenti (PDF/HTML/DOCX) dalle catture
+6. Condivisione (link, cloud, email), impostazioni con interfaccia, più lingue
