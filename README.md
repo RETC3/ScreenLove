@@ -148,6 +148,7 @@ dotnet run --project tests/ScreenLove.Checks
 Verificano tasti rapidi, impostazioni, effetti immagine, documenti PDF/Word/HTML (Word validato con l'Open XML SDK),
 registrazione, taglio e unione video (anche con audio, tramite clip sintetiche). Con `--no-video` si salta la parte
 video, che registra 3 secondi dell'angolo in alto a sinistra dello schermo. Codice di uscita = numero di errori.
+Con `--online` si controlla anche l'ultima release vera su GitHub (lettura e download dell'installer).
 
 Diagnostica della cattura a scorrimento: con la variabile d'ambiente `SCREENLOVE_SCROLL_DEBUG`
 impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono salvati lì.

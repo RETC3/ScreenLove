@@ -36,6 +36,8 @@ namespace ScreenLove.Checks
             Section("Tasti rapidi", CheckHotkeys);
             Section("Impostazioni", CheckSettings);
             Section("Aggiornamenti", CheckUpdater);
+            if (args.Contains("--online"))
+                Section("Aggiornamenti: release vera su GitHub", () => RunOnDispatcher(CheckUpdaterOnlineAsync));
             var sample = SampleImage(900, 520);
             Section("Effetti immagine", () => CheckEffects(sample));
             Section("Generatore di documenti", CheckDocuments);
@@ -124,6 +126,31 @@ namespace ScreenLove.Checks
             Check(r.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt) && r.Key == Key.R && r.VirtualKey == 0x52, "Ctrl+Alt+R: modificatori e codice tasto corretti");
             Check(HotkeyBinding.Parse("Shift+Snapshot").Display == "Maiusc+Stamp", "nomi italiani (Maiusc, Stamp)");
             Check(HotkeyBinding.Parse("").IsEmpty && HotkeyBinding.Parse(null).IsEmpty, "combinazione vuota = nessun tasto");
+        }
+
+        /// <summary>Con --online: legge l'ultima release pubblicata e ne scarica l'installer.</summary>
+        private static async Task CheckUpdaterOnlineAsync()
+        {
+            using var http = new System.Net.Http.HttpClient();
+            http.DefaultRequestHeaders.UserAgent.ParseAdd("ScreenLove-Checks");
+            var json = await http.GetStringAsync("https://api.github.com/repos/RETC3/ScreenLove/releases/latest");
+
+            // una copia "vecchia" (0.0.1) deve vedere la release come aggiornamento
+            var u = Updater.Parse(json, new Version(0, 0, 1));
+            Check(u != null, $"una versione 0.0.1 trova l'aggiornamento ({u?.Version})");
+            Check(u?.SetupUrl != null, $"la release contiene l'installer ({u?.SetupName}, {u?.SetupSize / 1048576.0:N1} MB)");
+            Check(Updater.Parse(json, Updater.CurrentVersion) == null || Updater.CurrentVersion < u!.Version,
+                $"la versione in uso ({Updater.CurrentVersion}) non si aggiorna a sé stessa");
+            if (u?.SetupUrl == null) return;
+
+            var path = await Updater.DownloadSetupAsync(u, null);
+            var info = new FileInfo(path);
+            Check(info.Length == u.SetupSize, $"installer scaricato per intero ({info.Length:N0} byte)");
+            var ver = System.Diagnostics.FileVersionInfo.GetVersionInfo(path);
+            // Inno Setup riempie i campi della versione con spazi
+            Check(ver.ProductName?.Trim() == "ScreenLove" && ver.ProductVersion?.Trim() == u.Version.ToString(),
+                $"il file scaricato è l'installer di ScreenLove {ver.ProductVersion?.Trim()}");
+            File.Delete(path);
         }
 
         private static void CheckUpdater()
