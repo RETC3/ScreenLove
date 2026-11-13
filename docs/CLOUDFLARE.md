@@ -75,7 +75,7 @@ vecchi di 400 giorni vengono cancellati.
 
 La pagina **https://screenlove.it/statistiche** mostra i numeri. È protetta da **Cloudflare Access**
 (Zero Trust, piano gratuito): applicazione self-hosted per `screenlove.it/statistiche`, con un criterio che
-ammette solo il tuo indirizzo email (codice monouso via email). La funzione controlla anche la firma del
+ammette solo il tuo indirizzo email. Metodo di accesso: **One-time PIN** (Integrations → Identity providers), cioè un codice via email; il team è `frosty-sun-e1a2`. La funzione controlla anche la firma del
 token di Access: in `web/wrangler.toml` vanno `ACCESS_TEAM_DOMAIN` (es. `nome.cloudflareaccess.com`) e
 `ACCESS_AUD` (Application Audience tag dell'applicazione). Senza questi valori la pagina risponde 403.
 
