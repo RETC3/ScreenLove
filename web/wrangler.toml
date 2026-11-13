@@ -4,10 +4,10 @@ name = "screenlove"
 pages_build_output_dir = "public"
 compatibility_date = "2026-10-01"
 
-# Pagina riservata /statistiche: Cloudflare Access (vedi docs/CLOUDFLARE.md). Vuoti = pagina chiusa.
+# Pagina riservata /statistiche: Cloudflare Access, applicazione "screenlove.it" (vedi docs/CLOUDFLARE.md).
 [vars]
-ACCESS_TEAM_DOMAIN = ""
-ACCESS_AUD = ""
+ACCESS_TEAM_DOMAIN = "frosty-sun-e1a2.cloudflareaccess.com"
+ACCESS_AUD = "100e1cfd440c562d4cdb5e638331def3e3b6fea7e040a278823775f39f1e1810"
 
 # Statistiche anonime: download e installazioni attive (web/lib/stats.js). Database nell'Unione Europea.
 [[d1_databases]]
