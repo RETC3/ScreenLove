@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · ScreenLove</title>
+<meta name="description" content="Cosa raccolgono il sito e l'app ScreenLove: solo numeri anonimi.">
+<meta name="theme-color" content="#141518">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<style>
+  @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/fonts/fraunces.woff2) format("woff2"); }
+  @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 400 700; font-display: swap; src: url(/fonts/fraunces-italic.woff2) format("woff2"); }
+  @font-face { font-family: "DM Sans"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(/fonts/dm-sans.woff2) format("woff2"); }
+  :root { --bg: #141518; --panel: #1E1F24; --line: #33363E; --fg: #ECECEF; --muted: #9A9CA5; --accent: #FF3D7F; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.7 "DM Sans", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 70px; }
+  a { color: inherit; } a:hover { color: var(--accent); }
+  .back { display: inline-block; color: var(--muted); font-size: 15px; text-decoration: none; margin-bottom: 26px; }
+  h1, h2 { font-family: "Fraunces", Georgia, serif; font-weight: 500; letter-spacing: -.01em; }
+  h1 { font-size: 40px; line-height: 1.15; margin: 0 0 10px; } h1 i { color: var(--accent); }
+  h2 { font-size: 24px; margin: 38px 0 10px; }
+  .lead { color: var(--muted); font-size: 18px; margin: 0; }
+  ul { padding-left: 22px; } li { margin: 6px 0; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; margin: 14px 0; }
+  code { font-size: 15px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+  .box code { background: transparent; }
+  footer { margin-top: 48px; padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font-size: 14.5px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← Torna a ScreenLove</a>
+  <h1>Privacy, <i>in breve</i></h1>
+  <p class="lead">ScreenLove non sa chi sei. Conta solo quante volte viene scaricato e quante copie sono in uso.</p>
+
+  <h2>Le tue catture</h2>
+  <p>Screenshot, video, testi e documenti restano sul tuo computer. L'app non li invia da nessuna parte:
+     escono solo quando sei tu a copiarli, salvarli o condividerli.</p>
+
+  <h2>Il sito</h2>
+  <ul>
+    <li>Niente cookie, niente pubblicità, niente servizi di analisi o tracciamento.</li>
+    <li>Per ogni file scaricato si aumenta di uno un contatore giornaliero (quale file, se dal sito o
+        dall'aggiornamento dell'app). Non si registra chi l'ha scaricato.</li>
+  </ul>
+
+  <h2>L'app</h2>
+  <p>Una volta al giorno, se è attivo il controllo degli aggiornamenti, ScreenLove legge sul sito qual è
+     l'ultima versione. Insieme invia queste quattro informazioni:</p>
+  <div class="box">
+    <ul>
+      <li><code>id</code>: un codice casuale creato dall'app (non deriva dal computer né da te);</li>
+      <li><code>version</code>: la versione di ScreenLove, per esempio 0.2.0;</li>
+      <li><code>arch</code>: il tipo di Windows (x64 o ARM64);</li>
+      <li><code>kind</code>: se ScreenLove è installato o è la versione portatile.</li>
+    </ul>
+  </div>
+  <p>Servono solo a sapere quante copie sono in uso e in quali versioni. Si conservano al massimo per
+     400 giorni, nell'Unione Europea.</p>
+  <p>Puoi disattivarle quando vuoi: <b>Impostazioni → Aggiornamenti → Invia statistiche anonime d'uso</b>.
+     Il codice casuale viene cancellato e non si invia più nulla. Se disattivi il controllo degli
+     aggiornamenti, non parte nessuna richiesta.</p>
+
+  <h2>Chi gestisce i dati</h2>
+  <p>Il sito, i download e le statistiche sono ospitati da Cloudflare, che come ogni server riceve
+     l'indirizzo IP per consegnare le pagine. ScreenLove non salva gli indirizzi IP.</p>
+  <p>Per domande scrivi a <a href="mailto:info@screenlove.it">info@screenlove.it</a>.</p>
+
+  <footer>ScreenLove · cattura dello schermo per Windows</footer>
+</main>
+</body>
+</html>

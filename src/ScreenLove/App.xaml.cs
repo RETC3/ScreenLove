@@ -119,6 +119,7 @@ namespace ScreenLove
                 var update = await Updater.CheckAsync();
                 Settings.LastUpdateCheck = DateTime.UtcNow;
                 Settings.Save();
+                if (!manual) _ = SendUsageStatsAsync();
                 _pendingUpdate = update;
                 if (update == null)
                 {
@@ -144,6 +145,14 @@ namespace ScreenLove
             {
                 _checkingUpdates = false;
             }
+        }
+
+        /// <summary>Statistiche anonime, insieme al controllo automatico (al massimo una volta al giorno).</summary>
+        private async System.Threading.Tasks.Task SendUsageStatsAsync()
+        {
+            var hadId = Settings.InstallId;
+            await UsageStats.SendAsync(Settings);
+            if (Settings.InstallId != hadId) Settings.Save(); // codice appena creato
         }
 
         public void ShowUpdate()

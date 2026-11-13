@@ -31,6 +31,12 @@ namespace ScreenLove
         public bool CheckForUpdates { get; set; } = true;
         public DateTime? LastUpdateCheck { get; set; }
 
+        /// <summary>Statistiche anonime insieme al controllo degli aggiornamenti (vedi Services.UsageStats).</summary>
+        public bool SendUsageStats { get; set; } = true;
+
+        /// <summary>Codice casuale dell'installazione per le statistiche; null finché non serve.</summary>
+        public string? InstallId { get; set; }
+
         /// <summary>Tasti rapidi: nome dell'azione → combinazione (vedi Services.HotkeyBinding).</summary>
         public Dictionary<string, string> Hotkeys { get; set; } = new();
 

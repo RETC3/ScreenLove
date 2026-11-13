@@ -40,6 +40,7 @@ namespace ScreenLove.Options
             WebcamBox.IsChecked = _edit.RecordWebcam;
             WatermarkBox.Text = _edit.WatermarkText;
             UpdatesBox.IsChecked = _edit.CheckForUpdates;
+            StatsBox.IsChecked = _edit.SendUsageStats;
             VersionText.Text = $"Versione {Updater.CurrentVersion}" + (Updater.IsInstalled ? "" : " (portatile)");
 
             BuildHotkeyRows();
@@ -188,6 +189,9 @@ namespace ScreenLove.Options
             _edit.WatermarkText = WatermarkBox.Text;
             _edit.CheckForUpdates = UpdatesBox.IsChecked == true;
             _edit.LastUpdateCheck = App.Settings.LastUpdateCheck;
+            _edit.SendUsageStats = StatsBox.IsChecked == true;
+            // il codice può essere nato mentre la finestra era aperta; disattivando le statistiche si cancella
+            _edit.InstallId = _edit.SendUsageStats ? App.Settings.InstallId : null;
 
             try
             {

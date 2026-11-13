@@ -8,3 +8,6 @@ dist/
 web/public/latest.json
 .wrangler/
 node_modules/
+
+# variabili locali di wrangler pages dev
+web/.dev.vars

@@ -60,6 +60,27 @@ I valori restano cifrati su GitHub e nessuno li può rileggere, nemmeno tu.
 - **I file su R2** arrivano con la prossima release (`git tag -a v0.1.1 -m "Novità…"` e push del tag).
   Fino ad allora i download del sito passano dalla release su GitHub.
 
+## Statistiche anonime
+
+Due numeri, senza dati personali (vedi anche la pagina https://screenlove.it/privacy):
+- **download:** `web/functions/download/[[path]].js` conta ogni file scaricato per intero, per giorno, file e
+  provenienza (sito o aggiornamento dell'app);
+- **installazioni attive:** l'app, insieme al controllo automatico degli aggiornamenti (al massimo una volta
+  al giorno), invia a `POST /api/ping` un codice casuale, la versione, l'architettura e se è installata o
+  portatile (`src/ScreenLove/Services/UsageStats.cs`). Si disattiva in Impostazioni → Aggiornamenti.
+
+I dati stanno nel database **D1** `screenlove-stats` (giurisdizione UE, collegato come `STATS` in
+`web/wrangler.toml`). Le tabelle le crea il sito alla prima richiesta (`web/lib/stats.js`); i ping più
+vecchi di 400 giorni vengono cancellati.
+
+La pagina **https://screenlove.it/statistiche** mostra i numeri. È protetta da **Cloudflare Access**
+(Zero Trust, piano gratuito): applicazione self-hosted per `screenlove.it/statistiche`, con un criterio che
+ammette solo il tuo indirizzo email (codice monouso via email). La funzione controlla anche la firma del
+token di Access: in `web/wrangler.toml` vanno `ACCESS_TEAM_DOMAIN` (es. `nome.cloudflareaccess.com`) e
+`ACCESS_AUD` (Application Audience tag dell'applicazione). Senza questi valori la pagina risponde 403.
+
+In locale la pagina è aperta: `web/.dev.vars` con `STATS_DEV_OPEN = "1"` (file non versionato).
+
 ## Controlli
 
 - `https://screenlove.it/latest.json`: ultima versione, dimensioni e impronte.

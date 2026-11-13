@@ -36,6 +36,7 @@ namespace ScreenLove.Checks
             Section("Tasti rapidi", CheckHotkeys);
             Section("Impostazioni", CheckSettings);
             Section("Aggiornamenti", CheckUpdater);
+            Section("Statistiche anonime", CheckUsageStats);
             if (args.Contains("--online"))
                 Section("Aggiornamenti: release vera su GitHub", () => RunOnDispatcher(CheckUpdaterOnlineAsync));
             var sample = SampleImage(900, 520);
@@ -198,6 +199,81 @@ namespace ScreenLove.Checks
             finally
             {
                 Environment.SetEnvironmentVariable("SCREENLOVE_UPDATE_FEED", null);
+            }
+        }
+
+        private static void CheckUsageStats()
+        {
+            var s = new AppSettings();
+            Check(s.SendUsageStats && s.InstallId == null, "predefinito: statistiche attive, nessun codice finché non serve");
+            var id = UsageStats.EnsureInstallId(s);
+            Check(UsageStats.IsValidId(id) && s.InstallId == id, $"codice casuale di 32 cifre esadecimali ({id})");
+            Check(UsageStats.EnsureInstallId(s) == id, "il codice resta lo stesso");
+            Check(UsageStats.EnsureInstallId(new AppSettings()) != id, "ogni installazione ha un codice diverso");
+            s.InstallId = "non-valido";
+            Check(UsageStats.IsValidId(UsageStats.EnsureInstallId(s)), "codice non valido sostituito");
+
+            using (var doc = System.Text.Json.JsonDocument.Parse(UsageStats.BuildPing(id, new Version(0, 2, 0), "arm64", installed: false)))
+            {
+                var names = doc.RootElement.EnumerateObject().Select(p => p.Name).OrderBy(n => n).ToArray();
+                Check(string.Join(",", names) == "arch,id,kind,version", "il ping contiene solo id, versione, architettura e tipo");
+                Check(doc.RootElement.GetProperty("version").GetString() == "0.2.0"
+                      && doc.RootElement.GetProperty("kind").GetString() == "portable"
+                      && doc.RootElement.GetProperty("arch").GetString() == "arm64", "valori del ping corretti");
+            }
+
+            // invio vero a un piccolo server locale
+            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            listener.Start();
+            int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+            Environment.SetEnvironmentVariable("SCREENLOVE_STATS_URL", $"http://127.0.0.1:{port}/api/ping");
+            try
+            {
+                string? Receive(AppSettings settings)
+                {
+                    var accept = listener.AcceptTcpClientAsync();
+                    UsageStats.SendAsync(settings).GetAwaiter().GetResult();
+                    if (!accept.Wait(TimeSpan.FromSeconds(1))) return null;
+                    using var client = accept.Result;
+                    var stream = client.GetStream();
+                    var buf = new byte[8192];
+                    var text = new System.Text.StringBuilder();
+                    stream.ReadTimeout = 3000;
+                    while (true)
+                    {
+                        int n = stream.Read(buf, 0, buf.Length);
+                        if (n <= 0) break;
+                        text.Append(System.Text.Encoding.UTF8.GetString(buf, 0, n));
+                        var raw = text.ToString();
+                        int head = raw.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+                        var len = System.Text.RegularExpressions.Regex.Match(raw, @"Content-Length:\s*(\d+)", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                        if (head >= 0 && len.Success && raw.Length - head - 4 >= int.Parse(len.Groups[1].Value)) break;
+                    }
+                    var reply = System.Text.Encoding.ASCII.GetBytes("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n");
+                    stream.Write(reply, 0, reply.Length);
+                    return text.ToString();
+                }
+
+                var off = new AppSettings { SendUsageStats = false };
+                Check(Receive(off) == null && off.InstallId == null, "statistiche disattivate: nessun invio e nessun codice");
+                var noUpdates = new AppSettings { CheckForUpdates = false };
+                Check(Receive(noUpdates) == null, "aggiornamenti disattivati: nessun invio");
+
+                var on = new AppSettings();
+                var request = Receive(on) ?? "";
+                Check(request.StartsWith("POST /api/ping ", StringComparison.Ordinal) && on.InstallId != null
+                      && request.Contains("\"id\":\"" + on.InstallId + "\"") && request.Contains("\"version\":\"" + Updater.CurrentVersion.ToString(3) + "\""),
+                    "statistiche attive: un POST con il codice e la versione");
+
+                listener.Stop();
+                var nobody = new AppSettings();
+                UsageStats.SendAsync(nobody).GetAwaiter().GetResult();
+                Check(true, "sito irraggiungibile: nessun errore per l'utente");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SCREENLOVE_STATS_URL", null);
+                try { listener.Stop(); } catch { }
             }
         }
 

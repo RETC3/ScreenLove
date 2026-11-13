@@ -3,11 +3,14 @@
 //   /download/ScreenLove-Setup-0.1.0.exe  -> il file
 // I file stanno nel bucket R2 collegato come DOWNLOADS. Se il bucket non è configurato o il file
 // non c'è, si inoltra la copia della release su GitHub: chi scarica vede comunque solo il sito.
+// Ogni download completo viene contato nelle statistiche anonime (web/lib/stats.js).
+
+import { countDownload } from '../../lib/stats.js';
 
 const GITHUB_RELEASES = 'https://github.com/RETC3/ScreenLove/releases/download';
 const FILE_NAME = /^ScreenLove-(?:Setup-(\d+\.\d+\.\d+)\.exe|(\d+\.\d+\.\d+)-win-(?:x64|arm64)\.zip)$/;
 
-export async function onRequest({ request, env, params }) {
+export async function onRequest({ request, env, params, waitUntil }) {
   if (request.method !== 'GET' && request.method !== 'HEAD') {
     return new Response('Metodo non consentito', { status: 405, headers: { Allow: 'GET, HEAD' } });
   }
@@ -45,6 +48,7 @@ export async function onRequest({ request, env, params }) {
     if (object) {
       headers.set('Content-Length', String(object.size));
       headers.set('ETag', object.httpEtag);
+      count(request, env, name, waitUntil);
       return new Response(request.method === 'HEAD' ? null : object.body, { headers });
     }
   }
@@ -54,7 +58,20 @@ export async function onRequest({ request, env, params }) {
   if (!upstream.ok) return notFound();
   const length = upstream.headers.get('Content-Length');
   if (length) headers.set('Content-Length', length);
+  count(request, env, name, waitUntil);
   return new Response(request.method === 'HEAD' ? null : upstream.body, { headers });
+}
+
+/**
+ * Conta il download se è un GET dall'inizio del file (i gestori di download possono chiedere più pezzi
+ * con "Range": si conta solo quello che parte da 0). Provenienza: l'aggiornamento dell'app o il sito.
+ */
+function count(request, env, name, waitUntil) {
+  if (request.method !== 'GET' || !env.STATS) return;
+  const range = request.headers.get('Range');
+  if (range && !/^bytes=0-/.test(range)) return;
+  const source = /^ScreenLove/i.test(request.headers.get('User-Agent') || '') ? 'app' : 'web';
+  waitUntil(countDownload(env.STATS, name, source));
 }
 
 function notFound() {
