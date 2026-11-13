@@ -1,0 +1,29 @@
+<!doctype html>
+<!-- Icone del sito, disegnate a 512x512. Si rigenerano con scripts/make-site-images.ps1.
+     ?v=rounded  quadrato arrotondato su fondo trasparente (come favicon.svg): favicon.ico, icon-192/512
+     ?v=full     fondo pieno fino ai bordi (iOS arrotonda da sé): apple-touch-icon
+     ?v=maskable fondo pieno, cuore dentro l'area sicura di Android: icon-maskable-512 -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 512px; height: 512px; overflow: hidden; background: transparent; }
+  svg { display: block; width: 512px; height: 512px; }
+</style>
+</head>
+<body>
+<svg id="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"></svg>
+<script>
+  const v = new URLSearchParams(location.search).get('v') || 'rounded';
+  const heart = 'M16 25.5 C 10.5 21.4 6.5 18.2 6.5 13.6 C 6.5 10.7 8.6 8.6 11.2 8.6 C 13.2 8.6 14.9 9.8 16 11.5 C 17.1 9.8 18.8 8.6 20.8 8.6 C 23.4 8.6 25.5 10.7 25.5 13.6 C 25.5 18.2 21.5 21.4 16 25.5 Z';
+  const bg = v === 'rounded'
+    ? '<rect x="1" y="1" width="30" height="30" rx="7" fill="#FF3D7F"/>'
+    : '<rect width="32" height="32" fill="#FF3D7F"/>';
+  // cuore centrato (il tracciato va da y 8.6 a 25.5, come in favicon.svg): più piccolo nella versione maskable
+  const scale = v === 'maskable' ? 0.78 : v === 'full' ? 0.92 : 1;
+  const dy = 16 - (8.6 + 25.5) / 2;  // come favicon.svg
+  document.getElementById('icon').innerHTML = bg +
+    `<g transform="translate(16 16) scale(${scale}) translate(-16 ${-16 + dy})"><path d="${heart}" fill="#fff"/></g>`;
+</script>
+</body>
+</html>
