@@ -5,6 +5,8 @@ Il sito **https://screenlove.it** (Cloudflare Pages, progetto `screenlove`; `www
 - **i download:** passano da `/download/...` (`web/functions/download/[[path]].js`);
 - **i file** stanno in un bucket **Cloudflare R2** (`screenlove-downloads`). Se R2 non è attivo, il sito
   inoltra i file della release su GitHub, e chi scarica vede comunque solo il sito;
+- **l'anteprima per i social** (`web/public/og-image.png`, 1200x630) nasce da `web/og/og-image.html`:
+  dopo una modifica si rigenera con `scripts/make-og-image.ps1` (usa Edge);
 - **`latest.json`** descrive l'ultima versione. Lo generano i workflow con `scripts/make-latest-json.ps1`.
   L'app lo legge per gli aggiornamenti (con GitHub come riserva) e controlla l'impronta SHA-256 dell'installer.
 

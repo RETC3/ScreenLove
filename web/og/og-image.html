@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- Immagine di anteprima per i social (1200x630). Si rigenera con scripts/make-og-image.ps1
+     e finisce in web/public/og-image.png. -->
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 400 700; src: url(../public/fonts/fraunces.woff2) format("woff2"); }
+  @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 400 700; src: url(../public/fonts/fraunces-italic.woff2) format("woff2"); }
+  @font-face { font-family: "DM Sans"; font-style: normal; font-weight: 400 700; src: url(../public/fonts/dm-sans.woff2) format("woff2"); }
+  :root { --bg: #141518; --panel: #1E1F24; --line: #33363E; --fg: #ECECEF; --muted: #9A9CA5; --accent: #FF3D7F; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body { position: relative; color: var(--fg); font-family: "DM Sans", "Segoe UI", sans-serif;
+    background: radial-gradient(760px 520px at 84% 46%, rgba(255,61,127,.16), transparent 70%),
+                radial-gradient(600px 400px at 0% 0%, rgba(255,255,255,.04), transparent 70%), var(--bg); }
+
+  .left { position: absolute; left: 76px; top: 70px; width: 610px; }
+  .brand { display: flex; align-items: center; gap: 16px; font: 600 30px/1 "Fraunces", serif; letter-spacing: -.01em; }
+  .brand .logo { width: 56px; height: 56px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; }
+  .brand .logo svg { width: 30px; height: 30px; }
+  h1 { font: 500 84px/1.02 "Fraunces", serif; letter-spacing: -.015em; margin: 58px 0 30px; }
+  h1 .swash { position: relative; display: inline-block; font-style: italic; color: var(--accent); }
+  h1 .swash svg { position: absolute; left: -2%; bottom: -.08em; width: 104%; height: .32em; }
+  p { margin: 0; color: var(--muted); font-size: 27px; line-height: 1.4; }
+  .foot { position: absolute; left: 76px; bottom: 62px; display: flex; align-items: center; gap: 18px; font-size: 24px; color: var(--muted); }
+  .foot b { color: var(--fg); font-weight: 600; }
+  .foot .pill { padding: 10px 20px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 700; }
+
+  .arch { position: absolute; left: 760px; top: 70px; width: 370px; height: 500px; border-radius: 999px 999px 26px 26px; overflow: hidden;
+    background: linear-gradient(160deg, #23252B, #191A1E); border: 1px solid var(--line); box-shadow: 0 30px 70px rgba(0,0,0,.5); }
+  .arch .label { position: absolute; top: 74px; left: 0; right: 0; text-align: center; font: italic 500 26px/1 "Fraunces", serif; }
+  .arch .label small { display: block; font: 600 13px/1 "DM Sans", sans-serif; letter-spacing: .2em; color: var(--muted); margin-bottom: 12px; font-style: normal; text-transform: uppercase; }
+  .screen { position: absolute; inset: 150px 24px 24px; background: #F3F4F6; border-radius: 12px; overflow: hidden; }
+  .screen .bar { height: 26px; background: #E3E5EA; display: flex; gap: 6px; align-items: center; padding: 0 10px; }
+  .screen .bar i { width: 8px; height: 8px; border-radius: 50%; background: #C5C9D1; }
+  .screen .ln { height: 11px; border-radius: 6px; background: #D7DAE0; margin: 14px 18px 0; }
+  .screen .ln.t { height: 20px; width: 46%; background: #B4BAC5; margin-top: 20px; }
+  .screen .ln.m { width: 74%; } .screen .ln.s { width: 52%; }
+  .screen .blur { position: absolute; right: 18px; top: 58px; width: 34%; height: 22px; border-radius: 4px; background: repeating-linear-gradient(90deg,#A9B0BC 0 9px,#C7CCD5 9px 18px); }
+  .screen .box { position: absolute; left: 14px; top: 116px; width: 54%; height: 70px; border: 3px solid var(--accent); border-radius: 8px; background: rgba(255,61,127,.06); }
+  .screen .num { position: absolute; left: calc(54% + 2px); top: 100px; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 16px/32px "DM Sans", sans-serif; text-align: center; }
+  .screen svg.arrow { position: absolute; right: 5%; top: 196px; width: 44%; height: 70px; }
+
+  .badge { position: absolute; left: 690px; top: 330px; width: 150px; height: 150px; border-radius: 50%; background: var(--accent); box-shadow: 0 16px 40px rgba(255,61,127,.35); }
+  .badge svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .badge .heart { position: absolute; inset: 0; display: grid; place-items: center; }
+  .badge .heart svg { width: 40px; height: 40px; }
+  .spark { position: absolute; color: var(--accent); opacity: .75; }
+</style>
+</head>
+<body>
+  <div class="left">
+    <div class="brand"><span class="logo"><svg viewBox="0 0 24 24"><path d="M12 20.5C6.6 16.7 4.5 14 4.5 10.9a3.7 3.7 0 0 1 7.5-1.4 3.7 3.7 0 0 1 7.5 1.4c0 3.1-2.1 5.8-7.5 9.6Z" fill="#fff"/></svg></span>ScreenLove</div>
+    <h1>Catture che si
+      <span class="swash">spiegano<svg viewBox="0 0 300 30" preserveAspectRatio="none"><path d="M4 22 C 70 6, 170 4, 296 14" fill="none" stroke="#FF3D7F" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/></svg></span>
+      da sole.</h1>
+    <p>Screenshot, scorrimento, testo, QR code, video ed editor in un'unica app leggera.</p>
+  </div>
+  <div class="foot"><span class="pill">Gratis</span> per Windows 10 e 11 · <b>screenlove.it</b></div>
+
+  <div class="arch">
+    <div class="label"><small>Editor</small>Annota in un attimo</div>
+    <div class="screen">
+      <div class="bar"><i></i><i></i><i></i></div>
+      <div class="ln t"></div><div class="ln m"></div><div class="ln s"></div><div class="ln m"></div><div class="ln s"></div>
+      <div class="blur"></div>
+      <div class="box"></div>
+      <div class="num">1</div>
+      <svg class="arrow" viewBox="0 0 200 76" fill="none"><path d="M192 8C150 22 110 44 40 58" stroke="#FF3D7F" stroke-width="7" stroke-linecap="round"/><path d="M54 42 30 60l28 9" stroke="#FF3D7F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+
+  <div class="badge">
+    <svg class="ring" viewBox="0 0 150 150">
+      <defs><path id="circle" d="M75 75m-55 0a55 55 0 1 1 110 0a55 55 0 1 1-110 0"/></defs>
+      <text font-family="DM Sans, Segoe UI, sans-serif" font-size="11.2" font-weight="700" letter-spacing="3.2" fill="#fff"><textPath href="#circle">CATTURA • ANNOTA • CONDIVIDI • </textPath></text>
+    </svg>
+    <div class="heart"><svg viewBox="0 0 24 24"><path d="M12 20.5C6.6 16.7 4.5 14 4.5 10.9a3.7 3.7 0 0 1 7.5-1.4 3.7 3.7 0 0 1 7.5 1.4c0 3.1-2.1 5.8-7.5 9.6Z" fill="#fff"/></svg></div>
+  </div>
+
+  <span class="spark" style="left:1146px;top:60px;width:22px;height:22px"><svg viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="currentColor"/></svg></span>
+  <span class="spark" style="left:712px;top:120px;width:14px;height:14px;opacity:.45"><svg viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="currentColor"/></svg></span>
+</body>
+</html>
