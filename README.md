@@ -125,6 +125,9 @@ da `/download/latest`; i file stanno su Cloudflare R2. Configurazione e dettagli
 
 ### Pubblicare una release
 
+Prima si aggiunge la versione in cima a `versioni` in `web/lib/novita.js`, con le sue novità (e si tolgono da
+`inArrivo` quelle uscite): diventano la pagina https://screenlove.it/novita e le note della release su GitHub.
+
 ```bash
 git tag -a v0.2.0 -m "Novità: …"
 ```
@@ -138,7 +141,7 @@ Il workflow `.github/workflows/release.yml` fa tutto da solo:
 - compila x64 e ARM64;
 - crea installer e zip;
 - carica installer e zip su Cloudflare R2;
-- pubblica la release "ScreenLove 0.2.0" (novità = messaggio del tag, altrimenti note automatiche);
+- pubblica la release "ScreenLove 0.2.0" (novità da `web/lib/novita.js`, altrimenti messaggio del tag o note automatiche);
 - aggiorna il sito https://screenlove.it (pagina e `latest.json`).
 
 Le copie installate la trovano al controllo successivo. Dalla scheda Actions si può anche solo compilare

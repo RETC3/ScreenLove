@@ -102,9 +102,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $v = '${{ steps.version.outputs.version }}'
-          # Novità = messaggio del tag annotato (git tag -a v0.2.0 -m "..."); se manca, note automatiche.
+          # Novità: la voce della versione in web/lib/novita.js (pagina /novita del sito); se manca, il
+          # messaggio del tag annotato (git tag -a v0.2.0 -m "..."); altrimenti note automatiche.
           git fetch --force origin "refs/tags/v${v}:refs/tags/v${v}" 2>$null
           $message = (git for-each-ref "refs/tags/v$v" --format='%(contents)' | Out-String).Trim()
+          $fromNovita = (node scripts/novita-notes.mjs $v | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0) { $fromNovita = ''; Write-Host "::warning::La versione $v non c'è in web/lib/novita.js: la pagina /novita non la mostra" }
+          if ($fromNovita) { $message = $fromNovita }
           $notes = @()
           if ($message -and $message -ne "ScreenLove $v") {
             [IO.File]::WriteAllText("$PWD/dist/notes.md", $message + "`n")

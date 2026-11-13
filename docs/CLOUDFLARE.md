@@ -5,6 +5,8 @@ Il sito **https://screenlove.it** (Cloudflare Pages, progetto `screenlove`; `www
 - **i download:** passano da `/download/...` (`web/functions/download/[[path]].js`);
 - **i file** stanno in un bucket **Cloudflare R2** (`screenlove-downloads`). Se R2 non è attivo, il sito
   inoltra i file della release su GitHub, e chi scarica vede comunque solo il sito;
+- **la pagina delle novità** (`/novita`, `web/functions/novita.js`) legge versioni e novità in arrivo da
+  `web/lib/novita.js`. Le stesse voci diventano le note della release su GitHub;
 - **l'anteprima per i social** (`web/public/og-image.png`, 1200x630) e **le icone** (`favicon.ico`,
   `apple-touch-icon.png`, `icon-192/512.png`, `icon-maskable-512.png`, elencate in `site.webmanifest`)
   nascono da `web/og/og-image.html` e `web/og/icon.html`: dopo una modifica si rigenerano con
