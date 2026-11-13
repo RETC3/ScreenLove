@@ -70,13 +70,41 @@ jobs:
         run: |
           npx --yes wrangler@4 pages project create screenlove --production-branch main >/dev/null 2>&1 \
             && echo "Progetto Pages creato" || echo "Progetto Pages già presente"
+          if ! npx --yes wrangler@4 r2 bucket list 2>/dev/null | grep -q "$BUCKET"; then
+            npx --yes wrangler@4 r2 bucket create "$BUCKET" >/dev/null 2>&1 && echo "Bucket R2 $BUCKET creato"
+          fi
           if npx --yes wrangler@4 r2 bucket list 2>/dev/null | grep -q "$BUCKET"; then
             echo "Bucket R2 $BUCKET presente: download serviti da R2"
+            echo "R2=true" >> "$GITHUB_ENV"
           else
-            # R2 non attivo o bucket mancante: il sito inoltra i file delle release di GitHub
-            echo "::warning::Bucket R2 $BUCKET non trovato: i download passano dalla release su GitHub (vedi docs/CLOUDFLARE.md)."
+            # R2 non attivo o token senza permesso R2: il sito inoltra i file delle release di GitHub
+            echo "::warning::R2 non disponibile (bucket $BUCKET non trovato né creabile): i download passano dalla release su GitHub (vedi docs/CLOUDFLARE.md)."
             sed -i '/^\[\[r2_buckets\]\]/,$d' wrangler.toml
           fi
+
+      - name: File della release su R2
+        if: steps.cf.outputs.ok == 'true' && env.R2 == 'true'
+        working-directory: web
+        run: |
+          # Carica i file dell'ultima release che mancano nel bucket (es. release precedenti all'attivazione di R2),
+          # controllando l'impronta SHA-256 quando latest.json la riporta.
+          existing=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/r2/buckets/$BUCKET/objects?per_page=1000" \
+            | jq -r '.result[]?.key') || existing=""
+          tag=$(jq -r '.tag_name' public/latest.json)
+          jq -c '.assets[]' public/latest.json | while read -r asset; do
+            name=$(echo "$asset" | jq -r '.name')
+            sha=$(echo "$asset" | jq -r '.sha256 // empty')
+            if echo "$existing" | grep -qx "$name"; then echo "$name: già su R2"; continue; fi
+            curl -fsSL -o "/tmp/$name" "https://github.com/${{ github.repository }}/releases/download/$tag/$name"
+            if [ -n "$sha" ] && [ "$(sha256sum "/tmp/$name" | cut -d' ' -f1)" != "$sha" ]; then
+              echo "::error::$name: impronta SHA-256 diversa da latest.json"; exit 1
+            fi
+            case "$name" in *.zip) type=application/zip;; *) type=application/vnd.microsoft.portable-executable;; esac
+            npx --yes wrangler@4 r2 object put "$BUCKET/$name" --file "/tmp/$name" --content-type "$type" --remote
+            echo "$name: caricato su R2"
+            rm -f "/tmp/$name"
+          done
 
       - name: Pubblicazione su Cloudflare Pages
         if: steps.cf.outputs.ok == 'true'

@@ -20,7 +20,8 @@ Tutto viene pubblicato dai workflow di GitHub:
 2. Clic su **Purchase R2 Plan / Attiva** e scegli il piano **gratuito**: 10 GB di spazio e download senza
    costi di traffico. Cloudflare chiede un metodo di pagamento anche per il piano gratuito, ma non addebita
    nulla entro i limiti.
-3. Il bucket non va creato: lo crea il workflow.
+3. Il bucket non va creato: lo crea il workflow **Sito**. Il workflow carica anche i file dell'ultima release
+   che mancano, quindi basta rilanciarlo (Actions → Sito → Run workflow) dopo l'attivazione.
 
 Se preferisci non attivare R2, salta questo passo: il sito funziona lo stesso, con i file presi dalla release
 su GitHub.
