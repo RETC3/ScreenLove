@@ -5,95 +5,207 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ScreenLove — cattura dello schermo per Windows</title>
 <meta name="description" content="ScreenLove: catture dello schermo, cattura a scorrimento, testo (OCR) e QR code, video MP4, editor con annotazioni e documenti PDF/Word. Gratis per Windows 10 e 11.">
+<meta name="theme-color" content="#141518">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/fraunces.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/dm-sans.woff2" as="font" type="font/woff2" crossorigin>
 <meta property="og:title" content="ScreenLove — cattura dello schermo per Windows">
 <meta property="og:description" content="Catture, scorrimento, OCR, video ed editor in un'unica app leggera.">
 <style>
+  @font-face { font-family: "Fraunces"; font-style: normal; font-weight: 400 700; font-display: swap;
+    src: url(/fonts/fraunces.woff2) format("woff2"); }
+  @font-face { font-family: "Fraunces"; font-style: italic; font-weight: 400 700; font-display: swap;
+    src: url(/fonts/fraunces-italic.woff2) format("woff2"); }
+  @font-face { font-family: "DM Sans"; font-style: normal; font-weight: 400 700; font-display: swap;
+    src: url(/fonts/dm-sans.woff2) format("woff2"); }
+
   :root {
-    --bg: #141518; --panel: #1E1F24; --panel2: #26282E; --line: #33363E;
-    --fg: #ECECEF; --muted: #9A9CA5; --accent: #FF3D7F; --accent2: #FF6B9D;
-    --radius: 14px;
+    --bg: #141518; --bg2: #18191D; --panel: #1E1F24; --panel2: #26282E; --line: #33363E;
+    --fg: #ECECEF; --muted: #9A9CA5; --accent: #FF3D7F; --accent-soft: rgba(255,61,127,.14);
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "DM Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body {
-    margin: 0; background: var(--bg); color: var(--fg);
-    font: 16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  }
-  a { color: var(--accent2); }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.65 var(--sans); overflow-x: hidden; }
+  a { color: inherit; }
+  img { max-width: 100%; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+  h1, h2, h3 { font-family: var(--serif); font-weight: 500; letter-spacing: -.01em; }
+  em.accent { font-style: italic; color: var(--accent); }
 
-  header.top { border-bottom: 1px solid var(--line); background: rgba(20,21,24,.85); position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 5; }
-  header.top .wrap { display: flex; align-items: center; gap: 12px; height: 60px; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--fg); text-decoration: none; }
-  .brand img { width: 28px; height: 28px; }
-  nav { margin-left: auto; display: flex; gap: 22px; }
-  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
-  nav a:hover { color: var(--fg); }
-
-  .hero { padding: 72px 0 56px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
-  .hero h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.1; margin: 0 0 18px; letter-spacing: -.5px; }
-  .hero h1 em { font-style: normal; color: var(--accent); }
-  .hero p.lead { color: var(--muted); font-size: 19px; margin: 0 0 28px; max-width: 34em; }
-  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 17px; text-decoration: none; border: 1px solid transparent; }
-  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 8px 28px rgba(255,61,127,.28); }
+  /* ---------- barra in alto ---------- */
+  .top { position: sticky; top: 0; z-index: 20; background: rgba(20,21,24,.82); backdrop-filter: blur(12px); }
+  .top .wrap { display: flex; align-items: center; gap: 28px; height: 76px; }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .logo { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; flex: none; }
+  .brand .logo svg { width: 22px; height: 22px; }
+  .brand b { display: block; font: 600 22px/1 var(--serif); }
+  .brand b i { color: var(--accent); font-weight: 500; }
+  .brand small { display: block; font-size: 10.5px; letter-spacing: .18em; color: var(--muted); margin-top: 4px; text-transform: uppercase; }
+  .top nav { display: flex; gap: 30px; margin: 0 auto; }
+  .top nav a { text-decoration: none; color: var(--muted); font-size: 15.5px; }
+  .top nav a:hover { color: var(--fg); }
+  .pill { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border: 1px solid var(--line); border-radius: 999px; font-size: 14px; color: var(--fg); white-space: nowrap; }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 26px; border-radius: 999px; font-weight: 600; font-size: 16px; text-decoration: none; border: 1px solid transparent; transition: transform .15s, background .15s, border-color .15s; white-space: nowrap; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 10px 30px rgba(255,61,127,.3); }
   .btn.primary:hover { background: #ff5590; }
-  .btn.ghost { color: var(--fg); border-color: var(--line); }
-  .btn.ghost:hover { border-color: var(--muted); }
-  .meta { color: var(--muted); font-size: 14px; margin-top: 14px; }
+  .btn.outline { border-color: var(--line); color: var(--fg); background: rgba(255,255,255,.02); }
+  .btn.outline:hover { border-color: var(--muted); }
+  .btn.small { padding: 11px 22px; font-size: 15px; }
 
-  /* finestra illustrativa dell'editor */
-  .mock { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
-  .mock .bar { display: flex; gap: 6px; padding: 10px 12px; background: var(--panel2); border-bottom: 1px solid var(--line); align-items: center; }
-  .mock .bar span { font-size: 12px; color: var(--fg); padding: 4px 9px; border-radius: 6px; background: #30333A; white-space: nowrap; }
-  .mock .bar span.on { background: var(--accent); color: #fff; }
-  .mock .canvas { position: relative; height: 290px; background: #101114; padding: 22px; }
-  .shot { position: absolute; inset: 22px; background: #f4f5f7; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 26px rgba(0,0,0,.5); }
-  .shot .line { height: 10px; border-radius: 5px; background: #d9dce2; margin: 14px 18px 0; }
-  .shot .line.s { width: 45%; } .shot .line.m { width: 70%; } .shot .line.t { height: 18px; width: 38%; background: #b9bec8; margin-top: 20px; }
-  .shot .box { position: absolute; left: 18px; bottom: 22px; width: 46%; height: 72px; border: 3px solid var(--accent); border-radius: 6px; }
-  .shot .blur { position: absolute; right: 22px; top: 54px; width: 32%; height: 22px; border-radius: 4px; background: repeating-linear-gradient(90deg,#aab0bb 0 8px,#c4c9d2 8px 16px); }
-  .shot .step { position: absolute; left: 50%; bottom: 68px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 15px; }
-  .shot svg { position: absolute; right: 14%; bottom: 28px; width: 34%; height: 70px; }
+  /* ---------- hero ---------- */
+  .hero { position: relative; padding: 46px 0 150px;
+    background: radial-gradient(900px 520px at 78% 30%, rgba(255,61,127,.10), transparent 70%),
+                radial-gradient(700px 400px at 10% 0%, rgba(255,255,255,.035), transparent 70%); }
+  .hero .wrap { display: grid; grid-template-columns: 1.02fr 1fr; gap: 40px; align-items: center; }
+  .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); font-weight: 600; margin-bottom: 26px; }
+  .eyebrow .sep { width: 4px; height: 4px; border-radius: 50%; background: var(--muted); }
+  .eyebrow span.os { color: var(--muted); letter-spacing: .02em; text-transform: none; font-weight: 500; font-size: 14.5px; display: inline-flex; align-items: center; gap: 6px; }
+  .hero h1 { font-size: clamp(46px, 6.4vw, 84px); line-height: 1.02; margin: 0 0 26px; }
+  .hero h1 .swash { position: relative; display: inline-block; font-style: italic; color: var(--accent); }
+  .hero h1 .swash svg { position: absolute; left: -2%; bottom: -.08em; width: 104%; height: .32em; }
+  .hero p.lead { color: var(--muted); font-size: 19px; max-width: 32em; margin: 0 0 34px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 14px; }
+  .stats { display: flex; gap: 44px; margin-top: 46px; padding-top: 28px; border-top: 1px solid var(--line); max-width: 540px; }
+  .stats b { display: block; font: 500 34px/1 var(--serif); margin-bottom: 8px; }
+  .stats span { color: var(--muted); font-size: 14px; line-height: 1.35; display: block; }
 
-  section { padding: 56px 0; border-top: 1px solid var(--line); }
-  section h2 { font-size: 30px; margin: 0 0 8px; }
-  section p.sub { color: var(--muted); margin: 0 0 32px; }
-  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
-  .card .ico { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,61,127,.14); color: var(--accent); display: grid; place-items: center; font-size: 20px; margin-bottom: 12px; }
-  .card h3 { margin: 0 0 6px; font-size: 18px; }
-  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  /* collage a destra */
+  .collage { position: relative; height: 560px; }
+  .arch { position: absolute; left: 22%; right: 6%; top: 0; bottom: 34px; border-radius: 999px 999px 26px 26px; overflow: hidden;
+    background: linear-gradient(160deg, #23252B, #191A1E); border: 1px solid var(--line); box-shadow: 0 30px 70px rgba(0,0,0,.5); }
+  .arch .screen { position: absolute; inset: 120px 26px 26px; background: #F3F4F6; border-radius: 12px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,.45); }
+  .screen .bar { height: 26px; background: #E3E5EA; display: flex; gap: 6px; align-items: center; padding: 0 10px; }
+  .screen .bar i { width: 8px; height: 8px; border-radius: 50%; background: #C5C9D1; }
+  .screen .ln { height: 11px; border-radius: 6px; background: #D7DAE0; margin: 14px 18px 0; }
+  .screen .ln.t { height: 20px; width: 46%; background: #B4BAC5; margin-top: 20px; }
+  .screen .ln.m { width: 74%; } .screen .ln.s { width: 52%; }
+  .screen .blur { position: absolute; right: 18px; top: 58px; width: 34%; height: 22px; border-radius: 4px; background: repeating-linear-gradient(90deg,#A9B0BC 0 9px,#C7CCD5 9px 18px); }
+  .screen .box { position: absolute; left: 14px; top: 104px; width: 52%; height: 64px; border: 3px solid var(--accent); border-radius: 8px; background: rgba(255,61,127,.06); }
+  .screen .num { position: absolute; left: calc(52% + 2px); top: 88px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font: 700 15px/30px var(--sans); text-align: center; box-shadow: 0 4px 10px rgba(255,61,127,.4); }
+  .screen svg.arrow { position: absolute; right: 6%; top: 120px; width: 36%; height: 70px; }
+  .arch .label { position: absolute; top: 58px; left: 0; right: 0; text-align: center; font: italic 500 22px/1 var(--serif); color: var(--fg); }
+  .arch .label small { display: block; font: 600 11px/1 var(--sans); letter-spacing: .2em; color: var(--muted); margin-bottom: 10px; font-style: normal; text-transform: uppercase; }
 
-  table.keys { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-  table.keys td { padding: 12px 18px; border-top: 1px solid var(--line); }
-  table.keys tr:first-child td { border-top: 0; }
-  kbd { font: 13px/1 "Cascadia Mono", Consolas, monospace; background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
+  .badge { position: absolute; left: 4%; top: 46px; width: 150px; height: 150px; border-radius: 50%; background: var(--accent); box-shadow: 0 16px 40px rgba(255,61,127,.35); }
+  .badge svg.ring { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 26s linear infinite; }
+  .badge .heart { position: absolute; inset: 0; display: grid; place-items: center; }
+  .badge .heart svg { width: 40px; height: 40px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  .dl { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
-  .dl .card.main { border-color: rgba(255,61,127,.5); }
-  .files { list-style: none; padding: 0; margin: 12px 0 0; }
-  .files li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
-  .files li:first-child { border-top: 0; }
-  .files span { color: var(--muted); white-space: nowrap; }
-  ol.steps { margin: 10px 0 0; padding-left: 20px; color: var(--muted); }
-  ol.steps li { margin: 6px 0; }
-  .notes { white-space: pre-wrap; color: var(--muted); font-size: 14px; max-height: 220px; overflow: auto; margin-top: 10px; }
+  .rec { position: absolute; right: 0; top: 96px; width: 132px; height: 132px; border-radius: 50%; background: var(--panel); border: 6px solid #2C2E35; box-shadow: 0 18px 40px rgba(0,0,0,.5); display: grid; place-items: center; text-align: center; }
+  .rec .r { display: inline-flex; align-items: center; gap: 7px; font: 700 13px/1 var(--sans); letter-spacing: .14em; }
+  .rec .r::before { content: ""; width: 11px; height: 11px; border-radius: 50%; background: #FF3B30; animation: blink 1.4s ease-in-out infinite; }
+  .rec .t { font: 500 24px/1.1 var(--serif); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  @keyframes blink { 50% { opacity: .25; } }
 
-  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
-  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+  .qr { position: absolute; left: 2%; bottom: -14px; width: 200px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; transform: rotate(-5deg); box-shadow: 0 26px 50px rgba(0,0,0,.55); }
+  .qr svg { width: 100%; display: block; border-radius: 8px; background: #fff; padding: 10px; }
+  .qr p { margin: 10px 2px 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
+  .qr p b { color: var(--fg); font-weight: 600; }
 
-  @media (max-width: 860px) {
-    .hero { grid-template-columns: 1fr; padding-top: 44px; }
-    .grid { grid-template-columns: 1fr 1fr; }
-    .dl { grid-template-columns: 1fr; }
-    nav { display: none; }
+  .info { position: absolute; right: -2%; bottom: 40px; display: flex; gap: 14px; align-items: center; padding: 16px 20px 16px 16px; background: rgba(30,31,36,.92); backdrop-filter: blur(8px); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 20px 44px rgba(0,0,0,.5); max-width: 280px; }
+  .info .ic { width: 46px; height: 46px; border-radius: 12px; background: var(--accent-soft); display: grid; place-items: center; flex: none; }
+  .info .ic svg { width: 24px; height: 24px; }
+  .info small { display: block; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  .info b { display: block; font: 600 19px/1.25 var(--serif); }
+  .info span { font-size: 13px; color: var(--accent); font-weight: 600; }
+
+  .spark { position: absolute; color: var(--accent); opacity: .7; }
+  .spark svg { width: 100%; height: 100%; display: block; }
+
+  .waves { position: absolute; left: 0; right: 0; bottom: -1px; height: 150px; pointer-events: none; }
+  .waves svg { width: 100%; height: 100%; display: block; }
+
+  /* ---------- sezioni ---------- */
+  section { padding: 90px 0; }
+  section.alt { background: var(--panel); }
+  .head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 44px; }
+  .head .eyebrow { margin-bottom: 14px; }
+  .head h2 { font-size: clamp(34px, 4.4vw, 52px); line-height: 1.08; margin: 0; max-width: 15em; }
+  .head p { color: var(--muted); margin: 0; max-width: 26em; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card { background: var(--bg2); border: 1px solid var(--line); border-radius: 22px; padding: 28px; transition: border-color .2s, transform .2s; }
+  section.alt .card { background: var(--bg); }
+  .card:hover { border-color: rgba(255,61,127,.45); transform: translateY(-2px); }
+  .card .ic { width: 48px; height: 48px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 18px; }
+  .card .ic svg { width: 22px; height: 22px; }
+  .card h3 { font-size: 23px; margin: 0 0 8px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+  .keys { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 40px; }
+  .key { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; border-bottom: 1px solid var(--line); }
+  .key span { color: var(--fg); }
+  kbd { font: 600 13px/1 var(--sans); background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 8px; padding: 6px 10px; white-space: nowrap; color: var(--fg); }
+  .key .combo { display: flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; flex: none; }
+
+  .dl { display: grid; grid-template-columns: 1.25fr 1fr; gap: 22px; }
+  .dl .main { position: relative; overflow: hidden; background: linear-gradient(150deg, #2A1520 0%, var(--bg2) 55%); border-color: rgba(255,61,127,.4); padding: 36px; }
+  .dl .main h3 { font-size: 32px; margin: 0 0 10px; }
+  .dl .main p.d { color: var(--muted); margin: 0 0 24px; max-width: 30em; }
+  ol.steps { margin: 26px 0 0; padding: 0; list-style: none; counter-reset: s; }
+  ol.steps li { counter-increment: s; position: relative; padding-left: 44px; margin: 14px 0; color: var(--muted); font-size: 15.5px; }
+  ol.steps li::before { content: counter(s); position: absolute; left: 0; top: -2px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); display: grid; place-items: center; font: 500 15px/1 var(--serif); color: var(--fg); }
+  ol.steps b { color: var(--fg); font-weight: 600; }
+  .files { list-style: none; padding: 0; margin: 6px 0 0; }
+  .files li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--line); }
+  .files a { text-decoration: none; font-weight: 500; }
+  .files a:hover { color: var(--accent); }
+  .files span { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .note { color: var(--muted); font-size: 14px; margin: 18px 0 0; }
+  .notes { white-space: pre-wrap; color: var(--muted); font-size: 14px; max-height: 220px; overflow: auto; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+  code { font-size: .9em; background: var(--panel2); padding: 1px 6px; border-radius: 5px; }
+
+  footer { border-top: 1px solid var(--line); padding: 34px 0 44px; color: var(--muted); font-size: 14.5px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 28px; justify-content: space-between; align-items: center; }
+  footer .brand b { font-size: 18px; }
+  footer a { text-decoration: none; } footer a:hover { color: var(--fg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .badge svg.ring, .rec .r::before { animation: none; }
+    html { scroll-behavior: auto; }
   }
-  @media (max-width: 560px) {
+  @media (max-width: 1060px) {
+    .top nav { display: none; }
+    .top .pill { margin-left: auto; }
+  }
+  @media (max-width: 960px) {
+    .hero .wrap { grid-template-columns: 1fr; }
+    .collage { height: 520px; max-width: 560px; width: 100%; margin: 20px auto 0; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .dl, .keys { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 620px) {
+    .wrap { padding: 0 16px; }
+    .top .wrap { height: 64px; gap: 12px; }
+    .top .pill { display: none; }
+    .top .btn { margin-left: auto; padding: 9px 16px; font-size: 14px; }
+    .brand small { display: none; }
+    .hero { padding: 28px 0 110px; }
+    .hero p.lead { font-size: 17px; }
+    .stats { gap: 22px; }
+    .stats b { font-size: 26px; }
+    .collage { height: 430px; }
+    .arch { left: 14%; right: 0; }
+    .arch .screen { inset: 84px 14px 18px; }
+    .arch .label { display: none; }
+    .badge { width: 108px; height: 108px; left: 0; top: 20px; }
+    .badge .heart svg { width: 30px; height: 30px; }
+    .rec { width: 100px; height: 100px; top: 70px; border-width: 4px; }
+    .rec .t { font-size: 19px; }
+    .qr { width: 150px; padding: 11px; left: 0; }
+    .qr p { font-size: 11.5px; }
+    .info { right: 0; bottom: 40px; padding: 12px 14px 12px 12px; max-width: 210px; }
+    .info b { font-size: 16px; }
+    .info .ic { width: 38px; height: 38px; }
     .grid { grid-template-columns: 1fr; }
-    .mock .bar span:nth-child(n+5) { display: none; }
-    table.keys td { padding: 10px 12px; }
+    section { padding: 64px 0; }
+    .dl .main { padding: 26px; }
+    .key { flex-direction: column; align-items: flex-start; gap: 10px; }
   }
 </style>
 </head>
@@ -101,93 +213,163 @@
 
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#"><img src="/favicon.svg" alt="">ScreenLove</a>
+    <a class="brand" href="#">
+      <span class="logo"><svg viewBox="0 0 24 24"><path d="M12 20.5C6.6 16.7 4.5 14 4.5 10.9a3.7 3.7 0 0 1 7.5-1.4 3.7 3.7 0 0 1 7.5 1.4c0 3.1-2.1 5.8-7.5 9.6Z" fill="#fff"/></svg></span>
+      <span><b>Screen<i>Love</i></b><small>Cattura dello schermo</small></span>
+    </a>
     <nav>
       <a href="#funzioni">Funzioni</a>
       <a href="#tasti">Tasti rapidi</a>
       <a href="#scarica">Scarica</a>
+      <a href="https://github.com/RETC3/ScreenLove">Codice</a>
     </nav>
+    <span class="pill"><span class="dot"></span><span id="pill-text">Gratis per Windows</span></span>
+    <a class="btn primary small" href="/download/latest">Scarica</a>
   </div>
 </header>
 
-<main class="wrap">
-  <div class="hero">
+<div class="hero">
+  <div class="wrap">
     <div>
-      <h1>Cattura, annota, <em>condividi</em>.</h1>
-      <p class="lead">ScreenLove è lo strumento di cattura dello schermo per Windows: immagini, pagine intere a scorrimento,
-        testo e QR code, video MP4 con audio e un editor per spiegare tutto con frecce, numeri e sfocature.</p>
-      <div class="cta">
-        <a class="btn primary" href="/download/latest" data-download>⬇&nbsp; Scarica per Windows</a>
-        <a class="btn ghost" href="#funzioni">Scopri le funzioni</a>
+      <div class="eyebrow">
+        Strumento di cattura <span class="sep"></span>
+        <span class="os"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10.5 4.4v7.1H3V5.5Zm8.5-1.2L21 3v8.5h-9.5V4.3ZM3 12.5h7.5v7.1L3 18.5v-6Zm8.5 0H21V21l-9.5-1.3v-7.2Z"/></svg>Windows 10 e 11</span>
       </div>
-      <div class="meta" id="hero-meta">Gratis · Windows 10 (2004) e Windows 11 · nessun account richiesto</div>
+      <h1>Catture che si
+        <span class="swash">spiegano<svg viewBox="0 0 300 30" preserveAspectRatio="none" aria-hidden="true"><path d="M4 22 C 70 6, 170 4, 296 14" fill="none" stroke="#FF3D7F" stroke-opacity=".55" stroke-width="7" stroke-linecap="round"/></svg></span>
+        da sole.</h1>
+      <p class="lead">Immagini, pagine intere a scorrimento, testo e QR code, video MP4 con audio. Poi frecce, numeri e
+        sfocature per mostrare esattamente quello che conta: tutto da un tasto, senza account.</p>
+      <div class="cta">
+        <a class="btn primary" href="/download/latest">Scarica per Windows
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="btn outline" href="#funzioni">Scopri le funzioni</a>
+      </div>
+      <div class="stats">
+        <div><b>40.000</b><span>pixel di pagina<br>in una cattura</span></div>
+        <div><b>60 fps</b><span>video MP4<br>con audio</span></div>
+        <div><b>0</b><span>account, abbonamenti<br>o pubblicità</span></div>
+      </div>
     </div>
 
-    <div class="mock" aria-hidden="true">
-      <div class="bar">
-        <span>↖ Seleziona</span><span class="on">➜ Freccia</span><span>▢ Rettangolo</span><span>① Step</span><span>▦ Sfoca</span><span>T Testo</span>
-      </div>
-      <div class="canvas">
-        <div class="shot">
-          <div class="line t"></div>
-          <div class="line m"></div>
-          <div class="line s"></div>
-          <div class="line m"></div>
+    <div class="collage" aria-hidden="true">
+      <div class="arch">
+        <div class="label"><small>Editor</small>Annota in un attimo</div>
+        <div class="screen">
+          <div class="bar"><i></i><i></i><i></i></div>
+          <div class="ln t"></div><div class="ln m"></div><div class="ln s"></div><div class="ln m"></div><div class="ln s"></div>
           <div class="blur"></div>
           <div class="box"></div>
-          <div class="step">1</div>
-          <svg viewBox="0 0 200 70" fill="none"><path d="M190 8 C 150 20 110 40 40 52" stroke="#FF3D7F" stroke-width="6" stroke-linecap="round"/><path d="M52 38 L 30 54 L 56 62" stroke="#FF3D7F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="num">1</div>
+          <svg class="arrow" viewBox="0 0 200 76" fill="none"><path d="M192 8C150 22 110 44 40 58" stroke="#FF3D7F" stroke-width="7" stroke-linecap="round"/><path d="M54 42 30 60l28 9" stroke="#FF3D7F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
       </div>
+
+      <div class="badge">
+        <svg class="ring" viewBox="0 0 150 150">
+          <defs><path id="circle" d="M75 75m-55 0a55 55 0 1 1 110 0a55 55 0 1 1-110 0"/></defs>
+          <text font-family="DM Sans, Segoe UI, sans-serif" font-size="11.2" font-weight="700" letter-spacing="3.2" fill="#fff">
+            <textPath href="#circle">CATTURA • ANNOTA • CONDIVIDI • </textPath>
+          </text>
+        </svg>
+        <div class="heart"><svg viewBox="0 0 24 24"><path d="M12 20.5C6.6 16.7 4.5 14 4.5 10.9a3.7 3.7 0 0 1 7.5-1.4 3.7 3.7 0 0 1 7.5 1.4c0 3.1-2.1 5.8-7.5 9.6Z" fill="#fff"/></svg></div>
+      </div>
+
+      <div class="rec"><div><div class="r">REC</div><div class="t" id="rec-time">00:42</div></div></div>
+
+      <div class="qr">
+        <svg viewBox="0 0 21 21" shape-rendering="crispEdges">
+          <g fill="#141518">
+            <path d="M0 0h7v7H0zM1 1v5h5V1zM2 2h3v3H2z" fill-rule="evenodd"/>
+            <path d="M14 0h7v7h-7zM15 1v5h5V1zM16 2h3v3h-3z" fill-rule="evenodd"/>
+            <path d="M0 14h7v7H0zM1 15v5h5v-5zM2 16h3v3H2z" fill-rule="evenodd"/>
+            <path d="M8 0h1v1H8zM10 0h2v1h-2zM9 2h2v1H9zM8 4h1v2H8zM10 4h1v1h-1zM12 3h1v2h-1zM9 6h3v1H9zM8 8h2v1H8zM11 8h1v2h-1zM0 8h2v1H0zM3 8h1v2H3zM5 9h2v1H5zM1 10h1v2H1zM4 11h3v1H4zM13 8h2v1h-2zM16 8h1v1h-1zM18 8h3v1h-3zM14 10h3v1h-3zM19 10h1v2h-1zM8 10h2v2H8zM12 11h1v1h-1zM15 12h2v1h-2zM8 13h1v2H8zM10 13h3v1h-3zM14 14h1v1h-1zM17 14h2v2h-2zM20 13h1v1h-1zM9 16h2v1H9zM12 15h1v3h-1zM14 16h2v1h-2zM8 18h3v1H8zM14 18h1v3h-1zM16 18h1v1h-1zM18 17h1v2h-1zM20 16h1v5h-1zM9 20h2v1H9zM16 20h3v1h-3zM12 19h1v2h-1z"/>
+          </g>
+        </svg>
+        <p><b>Testo e QR code</b><br>letti e copiati in un clic</p>
+      </div>
+
+      <div class="info">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#FF3D7F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div>
+        <div><small>Ultima versione</small><b id="info-title">ScreenLove</b><span id="info-sub">Gratis per Windows</span></div>
+      </div>
+
+      <span class="spark" style="right:30%;top:-6px;width:18px;height:18px"><svg viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="currentColor"/></svg></span>
+      <span class="spark" style="right:4%;bottom:12px;width:12px;height:12px"><svg viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="currentColor"/></svg></span>
+      <span class="spark" style="left:0;top:48%;width:14px;height:14px;opacity:.45"><svg viewBox="0 0 24 24"><path d="M12 0c1 7 5 11 12 12-7 1-11 5-12 12-1-7-5-11-12-12 7-1 11-5 12-12Z" fill="currentColor"/></svg></span>
     </div>
   </div>
-</main>
 
-<section id="funzioni">
+  <div class="waves" aria-hidden="true">
+    <svg viewBox="0 0 1440 150" preserveAspectRatio="none">
+      <path d="M0 70C220 30 420 30 640 62s420 60 800 8v80H0Z" fill="#FF3D7F" fill-opacity=".10"/>
+      <path d="M0 96C260 62 470 70 720 92s460 34 720-6v64H0Z" fill="#26282E"/>
+      <path d="M0 120C300 96 560 104 800 118s420 14 640-6v38H0Z" fill="#1E1F24"/>
+    </svg>
+  </div>
+</div>
+
+<section id="funzioni" class="alt">
   <div class="wrap">
-    <h2>Tutto quello che serve, in un'app leggera</h2>
-    <p class="sub">Parte con Windows, resta nell'area di notifica e risponde ai tasti rapidi.</p>
+    <div class="head">
+      <div>
+        <div class="eyebrow">Funzioni</div>
+        <h2>Tutto quello che serve, in <em class="accent">un'app</em> leggera.</h2>
+      </div>
+      <p>Parte con Windows, resta nell'area di notifica e risponde ai tasti rapidi. Le catture restano sul tuo PC.</p>
+    </div>
     <div class="grid">
-      <div class="card"><div class="ico">▢</div><h3>Area, finestra, schermo</h3>
-        <p>La finestra sotto il cursore si evidenzia da sola; lente d'ingrandimento, coordinate e colore del pixel. Multi-monitor.</p></div>
-      <div class="card"><div class="ico">⇣</div><h3>Cattura a scorrimento</h3>
-        <p>Pagine web e documenti lunghi in un'unica immagine: scorre, cattura e cuce, tenendo una sola volta intestazioni fisse.</p></div>
-      <div class="card"><div class="ico">T</div><h3>Testo (OCR) e QR code</h3>
-        <p>Seleziona una zona e il testo finisce negli appunti, offline. Legge anche QR code e codici a barre.</p></div>
-      <div class="card"><div class="ico">●</div><h3>Video MP4</h3>
-        <p>Registra una zona con audio di sistema e microfono, pausa, webcam in sovrimpressione. Poi taglia e unisci i video.</p></div>
-      <div class="card"><div class="ico">➜</div><h3>Editor</h3>
-        <p>Frecce, forme, evidenziatore, passaggi numerati, sfocatura dei dati sensibili, spotlight, ritaglio, ombre e bordi.</p></div>
-      <div class="card"><div class="ico">▤</div><h3>Documenti</h3>
-        <p>Da più catture a una guida passo passo in PDF, Word o HTML, con titoli e commenti.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/></svg></div>
+        <h3>Area, finestra, schermo</h3><p>La finestra sotto il cursore si evidenzia da sola; lente d'ingrandimento, coordinate e colore del pixel. Multi-monitor.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 7v8M9 12l3 3 3-3"/></svg></div>
+        <h3>Cattura a scorrimento</h3><p>Pagine web e documenti lunghi in un'unica immagine: scorre, cattura e cuce, tenendo una sola volta intestazioni fisse.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg></div>
+        <h3>Testo (OCR) e QR code</h3><p>Seleziona una zona e il testo finisce negli appunti, offline. Legge anche QR code e codici a barre.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10 6-3v10l-6-3"/></svg></div>
+        <h3>Video MP4</h3><p>Registra una zona con audio di sistema e microfono, pausa, webcam in sovrimpressione. Poi taglia e unisci i video.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19 19 5M19 5h-7M19 5v7"/></svg></div>
+        <h3>Editor</h3><p>Frecce, forme, evidenziatore, passaggi numerati, sfocatura dei dati sensibili, spotlight, ritaglio, ombre e bordi.</p></div>
+      <div class="card"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
+        <h3>Documenti</h3><p>Da più catture a una guida passo passo in PDF, Word o HTML, con titoli e commenti.</p></div>
     </div>
   </div>
 </section>
 
 <section id="tasti">
   <div class="wrap">
-    <h2>Tasti rapidi</h2>
-    <p class="sub">Tutti personalizzabili nelle Impostazioni.</p>
-    <table class="keys">
-      <tr><td><kbd>Stamp</kbd></td><td>Cattura area o finestra</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Stamp</kbd></td><td>Schermo intero</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Maiusc</kbd> + <kbd>Stamp</kbd></td><td>Cattura a scorrimento</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Stamp</kbd></td><td>Testo (OCR) e QR code</td></tr>
-      <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd></td><td>Avvia / ferma la registrazione video</td></tr>
-      <tr><td><kbd>Maiusc</kbd> + <kbd>Stamp</kbd></td><td>Cattura con conto alla rovescia (per i menu)</td></tr>
-    </table>
+    <div class="head">
+      <div>
+        <div class="eyebrow">Tasti rapidi</div>
+        <h2>Un tasto, e la cattura è <em class="accent">fatta</em>.</h2>
+      </div>
+      <p>Tutti personalizzabili nelle Impostazioni; ScreenLove segnala quelli già usati da altre app.</p>
+    </div>
+    <div class="keys">
+      <div class="key"><span>Area o finestra</span><span class="combo"><kbd>Stamp</kbd></span></div>
+      <div class="key"><span>Schermo intero</span><span class="combo"><kbd>Ctrl</kbd>+<kbd>Stamp</kbd></span></div>
+      <div class="key"><span>Cattura a scorrimento</span><span class="combo"><kbd>Ctrl</kbd>+<kbd>Maiusc</kbd>+<kbd>Stamp</kbd></span></div>
+      <div class="key"><span>Testo (OCR) e QR code</span><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>Stamp</kbd></span></div>
+      <div class="key"><span>Avvia / ferma il video</span><span class="combo"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>R</kbd></span></div>
+      <div class="key"><span>Con conto alla rovescia</span><span class="combo"><kbd>Maiusc</kbd>+<kbd>Stamp</kbd></span></div>
+    </div>
   </div>
 </section>
 
-<section id="scarica">
+<section id="scarica" class="alt">
   <div class="wrap">
-    <h2>Scarica ScreenLove</h2>
-    <p class="sub" id="dl-sub">Ultima versione, con aggiornamenti automatici.</p>
+    <div class="head">
+      <div>
+        <div class="eyebrow">Scarica</div>
+        <h2>Pronto in <em class="accent">un minuto</em>.</h2>
+      </div>
+      <p id="dl-sub">Ultima versione, con aggiornamenti automatici.</p>
+    </div>
     <div class="dl">
       <div class="card main">
         <h3>Installer per Windows</h3>
-        <p style="color:var(--muted);margin:0 0 16px">Consigliato: menu Start, avvio con Windows e aggiornamenti automatici. Non servono permessi di amministratore.</p>
-        <a class="btn primary" href="/download/latest" data-download id="dl-main">⬇&nbsp; Scarica l'installer</a>
+        <p class="d">Consigliato: menu Start, avvio con Windows e aggiornamenti automatici. Non servono permessi di amministratore.</p>
+        <a class="btn primary" href="/download/latest">Scarica l'installer
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></a>
         <ol class="steps">
           <li>Apri il file scaricato.</li>
           <li>Se Windows mostra "PC protetto da Windows", scegli <b>Ulteriori informazioni → Esegui comunque</b>
@@ -196,12 +378,12 @@
         </ol>
       </div>
       <div class="card">
-        <h3>Tutti i file</h3>
+        <h3 style="font-size:24px;margin:0 0 4px">Tutti i file</h3>
         <ul class="files" id="files">
           <li><a href="/download/latest">Installer (x64)</a><span>—</span></li>
         </ul>
-        <p style="color:var(--muted);font-size:14px;margin:14px 0 0">Gli zip contengono la versione portatile: un solo <code>ScreenLove.exe</code>
-          da avviare senza installare (senza aggiornamenti automatici).</p>
+        <p class="note">Gli zip contengono la versione portatile: un solo <code>ScreenLove.exe</code> da avviare senza
+          installare (senza aggiornamenti automatici).</p>
         <div class="notes" id="notes" hidden></div>
       </div>
     </div>
@@ -210,12 +392,24 @@
 
 <footer>
   <div class="wrap">
-    <span>♥ ScreenLove <span id="foot-ver"></span></span>
-    <span><a href="https://github.com/RETC3/ScreenLove">Codice sorgente</a></span>
+    <a class="brand" href="#">
+      <span class="logo" style="width:34px;height:34px"><svg viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20.5C6.6 16.7 4.5 14 4.5 10.9a3.7 3.7 0 0 1 7.5-1.4 3.7 3.7 0 0 1 7.5 1.4c0 3.1-2.1 5.8-7.5 9.6Z" fill="#fff"/></svg></span>
+      <span><b>Screen<i>Love</i></b></span>
+    </a>
+    <span id="foot-ver">Cattura dello schermo per Windows</span>
+    <a href="https://github.com/RETC3/ScreenLove">Codice sorgente</a>
   </div>
 </footer>
 
 <script>
+  // Timer della bolla "REC" (solo decorativo).
+  (() => {
+    const el = document.getElementById('rec-time');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let s = 42;
+    setInterval(() => { s++; el.textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }, 1000);
+  })();
+
   // Versione, dimensioni e note dall'ultima release (latest.json è generato a ogni release).
   (async () => {
     try {
@@ -245,13 +439,13 @@
       }
       const setup = (r.assets || []).find(x => labels[0][0].test(x.name));
       const date = r.published_at ? new Date(r.published_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      const shortDate = r.published_at ? new Date(r.published_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long' }) : '';
       document.getElementById('dl-sub').textContent =
-        `Versione ${version}${date ? ' del ' + date : ''}, con aggiornamenti automatici.`;
-      document.getElementById('foot-ver').textContent = version;
-      if (setup) {
-        document.getElementById('hero-meta').textContent =
-          `Versione ${version} · ${mb(setup.size)} · Windows 10 (2004) e Windows 11 · gratis, nessun account`;
-      }
+        `Versione ${version}${date ? ' del ' + date : ''}, con aggiornamenti automatici. Gratis, senza account.`;
+      document.getElementById('foot-ver').textContent = `Versione ${version} · cattura dello schermo per Windows`;
+      document.getElementById('pill-text').textContent = `Versione ${version} · gratis`;
+      document.getElementById('info-title').textContent = `ScreenLove ${version}`;
+      if (setup) document.getElementById('info-sub').textContent = `${shortDate ? shortDate + ' · ' : ''}${mb(setup.size)}`;
       if (r.body) {
         const notes = document.getElementById('notes');
         notes.textContent = 'Novità\n' + r.body;

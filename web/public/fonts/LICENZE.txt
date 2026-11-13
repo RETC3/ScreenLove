@@ -1,0 +1,9 @@
+Font inclusi nel sito (ospitati qui, senza richieste a servizi esterni):
+
+- Fraunces (fraunces.woff2, fraunces-italic.woff2) — Undercase Type, SIL Open Font License 1.1
+  https://github.com/undercasetype/Fraunces
+- DM Sans (dm-sans.woff2) — Colophon Foundry / Google, SIL Open Font License 1.1
+  https://github.com/googlefonts/dm-fonts
+
+Testo della licenza: https://openfontlicense.org
+Sottoinsieme "latin" scaricato da Google Fonts.
