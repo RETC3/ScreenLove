@@ -11,5 +11,12 @@ export async function onRequest({ request, next }) {
     url.port = '';
     return Response.redirect(url.toString(), 301);
   }
-  return next();
+  const response = await next();
+  // Le anteprime (<id>.screenlove.pages.dev) non devono finire nei motori di ricerca.
+  if (url.hostname.endsWith('.pages.dev')) {
+    const r = new Response(response.body, response);
+    r.headers.set('X-Robots-Tag', 'noindex');
+    return r;
+  }
+  return response;
 }

@@ -1,0 +1,7 @@
+# https://screenlove.it
+User-agent: *
+Disallow: /download/
+Disallow: /api/
+Disallow: /statistiche
+
+Sitemap: https://screenlove.it/sitemap.xml
