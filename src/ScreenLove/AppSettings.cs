@@ -27,6 +27,10 @@ namespace ScreenLove
         // Editor
         public string WatermarkText { get; set; } = "ScreenLove";
 
+        // Aggiornamenti
+        public bool CheckForUpdates { get; set; } = true;
+        public DateTime? LastUpdateCheck { get; set; }
+
         /// <summary>Tasti rapidi: nome dell'azione → combinazione (vedi Services.HotkeyBinding).</summary>
         public Dictionary<string, string> Hotkeys { get; set; } = new();
 

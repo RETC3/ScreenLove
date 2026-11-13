@@ -1,0 +1,32 @@
+<Window x:Class="ScreenLove.Options.UpdateWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ScreenLove — Aggiornamento" Width="560" Height="440" MinWidth="420" MinHeight="300"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource FgBrush}"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="13" ResizeMode="CanResizeWithGrip">
+    <DockPanel>
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" Padding="10,6"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Button x:Name="LaterButton" Style="{StaticResource ToolButton}" Click="Later_Click" Content="Più tardi"/>
+                    <Button x:Name="UpdateButton" Style="{StaticResource AccentButton}" Click="Update_Click" Content="Aggiorna ora"/>
+                </StackPanel>
+                <Button Style="{StaticResource ToolButton}" Click="Page_Click" Content="Pagina della release" HorizontalAlignment="Left"/>
+            </DockPanel>
+        </Border>
+
+        <StackPanel DockPanel.Dock="Top" Margin="22,18,22,8">
+            <TextBlock x:Name="TitleText" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+            <TextBlock x:Name="SubtitleText" Foreground="{StaticResource MutedBrush}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+            <ProgressBar x:Name="Progress" Height="6" Margin="0,12,0,0" Minimum="0" Maximum="1" Visibility="Collapsed"
+                         Foreground="{StaticResource AccentBrush}" Background="#15161A" BorderThickness="0"/>
+            <TextBlock x:Name="StatusText" Foreground="{StaticResource MutedBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+            <TextBlock Text="Novità" FontWeight="SemiBold" Margin="0,10,0,4"/>
+        </StackPanel>
+
+        <TextBox x:Name="NotesBox" Margin="22,0,22,16" IsReadOnly="True" TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto" Background="#15161A" Foreground="{StaticResource FgBrush}"
+                 BorderBrush="{StaticResource LineBrush}" Padding="8,6"/>
+    </DockPanel>
+</Window>

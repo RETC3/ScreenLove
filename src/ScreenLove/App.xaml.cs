@@ -76,6 +76,88 @@ namespace ScreenLove
                 ShowWorkspace();
             else
                 Notify("ScreenLove è attivo", HotkeySummary);
+
+            // "--check-updates": controllo immediato con esito sempre visibile.
+            if (e.Args.Contains("--check-updates"))
+            {
+                Dispatcher.BeginInvoke(() => _ = CheckForUpdatesAsync(manual: true));
+                return;
+            }
+
+            // Controllo automatico degli aggiornamenti, poco dopo l'avvio e al massimo una volta al giorno.
+            var updateTimer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(20) };
+            updateTimer.Tick += (_, _) =>
+            {
+                updateTimer.Stop();
+                _ = CheckForUpdatesAsync(manual: false);
+            };
+            updateTimer.Start();
+        }
+
+        // ---------- aggiornamenti ----------
+
+        private UpdateInfo? _pendingUpdate;
+        private Options.UpdateWindow? _updateWindow;
+        private bool _checkingUpdates;
+
+        /// <summary>
+        /// Cerca una nuova versione. Manuale: mostra sempre l'esito. Automatico: solo se attivo nelle
+        /// impostazioni, al massimo una volta al giorno, e avvisa con una notifica senza aprire finestre.
+        /// </summary>
+        public async System.Threading.Tasks.Task CheckForUpdatesAsync(bool manual)
+        {
+            if (_checkingUpdates) return;
+            if (!manual)
+            {
+                if (!Settings.CheckForUpdates) return;
+                if (Settings.LastUpdateCheck is DateTime last && DateTime.UtcNow - last < TimeSpan.FromHours(20)) return;
+            }
+
+            _checkingUpdates = true;
+            try
+            {
+                var update = await Updater.CheckAsync();
+                Settings.LastUpdateCheck = DateTime.UtcNow;
+                Settings.Save();
+                _pendingUpdate = update;
+                if (update == null)
+                {
+                    if (manual)
+                        MessageBox.Show($"Stai usando l'ultima versione di ScreenLove ({Updater.CurrentVersion}).", "ScreenLove");
+                }
+                else if (manual)
+                    ShowUpdate();
+                else
+                {
+                    Notify($"Aggiornamento disponibile: ScreenLove {update.Version}", "Clicca qui per vedere le novità e installarlo.");
+                    _updateBalloon = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Il controllo automatico fallisce in silenzio (es. PC offline).
+                if (manual)
+                    MessageBox.Show("Impossibile controllare gli aggiornamenti.\n\n" + ex.Message, "ScreenLove",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                _checkingUpdates = false;
+            }
+        }
+
+        public void ShowUpdate()
+        {
+            if (_pendingUpdate == null) return;
+            if (_updateWindow != null)
+            {
+                _updateWindow.Activate();
+                return;
+            }
+            _updateWindow = new Options.UpdateWindow(_pendingUpdate);
+            _updateWindow.Closed += (_, _) => _updateWindow = null;
+            _updateWindow.Show();
+            _updateWindow.Activate();
         }
 
         // ---------- tasti rapidi ----------
@@ -180,6 +262,16 @@ namespace ScreenLove
             AddToggle(menu, "Avvia con Windows", IsAutostartEnabled, SetAutostart);
             menu.Items.Add(new WF.ToolStripSeparator());
             menu.Items.Add("Impostazioni…", null, (_, _) => OpenSettings());
+            var updateItem = new WF.ToolStripMenuItem("Cerca aggiornamenti…");
+            updateItem.Click += (_, _) =>
+            {
+                if (_pendingUpdate != null) ShowUpdate();
+                else _ = CheckForUpdatesAsync(manual: true);
+            };
+            menu.Opening += (_, _) => updateItem.Text = _pendingUpdate != null
+                ? $"Installa l'aggiornamento {_pendingUpdate.Version}…"
+                : "Cerca aggiornamenti…";
+            menu.Items.Add(updateItem);
             menu.Items.Add("Esci", null, (_, _) => ExitApp());
 
             _tray = new WF.NotifyIcon
@@ -188,6 +280,10 @@ namespace ScreenLove
                 Text = "ScreenLove",
                 ContextMenuStrip = menu,
                 Visible = true,
+            };
+            _tray.BalloonTipClicked += (_, _) =>
+            {
+                if (_updateBalloon) ShowUpdate();
             };
             _tray.MouseClick += (_, args) =>
             {
@@ -208,8 +304,11 @@ namespace ScreenLove
             menu.Items.Add(item);
         }
 
+        private bool _updateBalloon;
+
         public void Notify(string title, string text)
         {
+            _updateBalloon = false;
             _tray?.ShowBalloonTip(2500, title, text, WF.ToolTipIcon.None);
         }
 

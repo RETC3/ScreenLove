@@ -76,6 +76,13 @@
                 <TextBlock Style="{StaticResource Label}" Text="Testo del watermark"/>
                 <TextBox x:Name="WatermarkBox" Margin="0,4,0,0"/>
 
+                <TextBlock Style="{StaticResource Section}" Text="Aggiornamenti"/>
+                <CheckBox x:Name="UpdatesBox" Content="Controlla se ci sono nuove versioni (una volta al giorno)"/>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock x:Name="VersionText" Style="{StaticResource Label}" Margin="0,0,12,0"/>
+                    <Button Style="{StaticResource ToolButton}" Click="CheckUpdates_Click" Content="Cerca ora"/>
+                </StackPanel>
+
                 <TextBlock Style="{StaticResource Section}" Text="Tasti rapidi"/>
                 <TextBlock Style="{StaticResource Label}" TextWrapping="Wrap" Margin="0,0,0,8"
                            Text="Clicca su una casella e premi la combinazione desiderata (Canc per nessun tasto). I tasti sono sospesi finché questa finestra è aperta."/>

@@ -39,6 +39,8 @@ namespace ScreenLove.Options
             RecCursorBox.IsChecked = _edit.RecordCursor;
             WebcamBox.IsChecked = _edit.RecordWebcam;
             WatermarkBox.Text = _edit.WatermarkText;
+            UpdatesBox.IsChecked = _edit.CheckForUpdates;
+            VersionText.Text = $"Versione {Updater.CurrentVersion}" + (Updater.IsInstalled ? "" : " (portatile)");
 
             BuildHotkeyRows();
             // Finché si sceglie un tasto, quelli globali non devono intercettarlo.
@@ -155,6 +157,8 @@ namespace ScreenLove.Options
                 FolderBox.Text = dlg.SelectedPath;
         }
 
+        private void CheckUpdates_Click(object sender, RoutedEventArgs e) => _ = App.Current.CheckForUpdatesAsync(manual: true);
+
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             string folder = FolderBox.Text.Trim();
@@ -182,6 +186,8 @@ namespace ScreenLove.Options
             _edit.RecordCursor = RecCursorBox.IsChecked == true;
             _edit.RecordWebcam = WebcamBox.IsChecked == true;
             _edit.WatermarkText = WatermarkBox.Text;
+            _edit.CheckForUpdates = UpdatesBox.IsChecked == true;
+            _edit.LastUpdateCheck = App.Settings.LastUpdateCheck;
 
             try
             {

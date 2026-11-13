@@ -28,13 +28,14 @@ namespace ScreenLove.Checks
         [STAThread]
         private static int Main(string[] args)
         {
-            _dir = args.Length > 0 ? args[0] : Path.Combine(Path.GetTempPath(), "ScreenLove.Checks");
+            _dir = args.FirstOrDefault(a => !a.StartsWith("-")) ?? Path.Combine(Path.GetTempPath(), "ScreenLove.Checks");
             Directory.CreateDirectory(_dir);
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             Console.WriteLine($"Cartella di lavoro: {_dir}\n");
 
             Section("Tasti rapidi", CheckHotkeys);
             Section("Impostazioni", CheckSettings);
+            Section("Aggiornamenti", CheckUpdater);
             var sample = SampleImage(900, 520);
             Section("Effetti immagine", () => CheckEffects(sample));
             Section("Generatore di documenti", CheckDocuments);
@@ -123,6 +124,25 @@ namespace ScreenLove.Checks
             Check(r.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt) && r.Key == Key.R && r.VirtualKey == 0x52, "Ctrl+Alt+R: modificatori e codice tasto corretti");
             Check(HotkeyBinding.Parse("Shift+Snapshot").Display == "Maiusc+Stamp", "nomi italiani (Maiusc, Stamp)");
             Check(HotkeyBinding.Parse("").IsEmpty && HotkeyBinding.Parse(null).IsEmpty, "combinazione vuota = nessun tasto");
+        }
+
+        private static void CheckUpdater()
+        {
+            var current = new Version(0, 1, 0);
+            string Release(string tag, bool pre = false) =>
+                "{\"tag_name\":\"" + tag + "\",\"prerelease\":" + (pre ? "true" : "false") + ",\"html_url\":\"https://github.com/RETC3/ScreenLove/releases/tag/" + tag + "\",\"body\":\"Novità\"," +
+                "\"assets\":[{\"name\":\"ScreenLove-0.2.0-win-x64.zip\",\"browser_download_url\":\"https://github.com/RETC3/ScreenLove/releases/download/v0.2.0/z.zip\",\"size\":5}," +
+                "{\"name\":\"ScreenLove-Setup-0.2.0.exe\",\"browser_download_url\":\"https://github.com/RETC3/ScreenLove/releases/download/v0.2.0/ScreenLove-Setup-0.2.0.exe\",\"size\":1234}]}";
+
+            var u = Updater.Parse(Release("v0.2.0"), current);
+            Check(u != null && u.Version == new Version(0, 2, 0), "v0.2.0 è più recente di 0.1.0");
+            Check(u?.SetupName == "ScreenLove-Setup-0.2.0.exe" && u.SetupSize == 1234, "trova l'installer tra gli allegati (non lo zip)");
+            Check(u?.Notes == "Novità", "legge le note della release");
+            Check(Updater.Parse(Release("v0.1.0"), current) == null, "stessa versione: nessun aggiornamento");
+            Check(Updater.Parse(Release("v0.0.9"), current) == null, "versione più vecchia: nessun aggiornamento");
+            Check(Updater.Parse(Release("v0.3.0", pre: true), current) == null, "le pre-release vengono ignorate");
+            Check(Updater.Parse(Release("nightly"), current) == null, "tag non numerico ignorato");
+            Check(Updater.CurrentVersion.Major >= 0 && Updater.CurrentVersion.Revision == -1, $"versione corrente leggibile ({Updater.CurrentVersion})");
         }
 
         private static void CheckSettings()

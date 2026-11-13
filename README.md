@@ -87,9 +87,55 @@ scripts\publish
 (`publish.cmd` avvia `publish.ps1` aggirando solo per quel comando il blocco degli script PowerShell,
 attivo di default su Windows. Si può anche fare doppio clic su `scripts\publish.cmd`.)
 
-Risultato: `dist\win-x64\ScreenLove.exe` (~75 MB). Opzioni: `-Arm64` per i PC ARM64
-(`dist\win-arm64\`), `-Zip` per creare anche `dist\ScreenLove-<versione>-<piattaforma>.zip`.
+Risultato: `dist\win-x64\ScreenLove.exe` (~77 MB). Opzioni:
+- `-Arm64`: anche per i PC ARM64 (`dist\win-arm64\`)
+- `-Zip`: crea anche `dist\ScreenLove-<versione>-<piattaforma>.zip`
+- `-Installer`: crea anche `dist\ScreenLove-Setup-<versione>.exe` (serve [Inno Setup 6](https://jrsoftware.org/isdl.php))
+- `-Version 0.2.0`: usa questa versione invece di quella del `.csproj`
+
 La cartella `dist\` non è nel repository.
+
+### Installer
+
+`installer\ScreenLove.iss` (Inno Setup) installa ScreenLove per l'utente corrente, senza permessi di
+amministratore, in `%LOCALAPPDATA%\Programs\ScreenLove`:
+- collegamento nel menu Start, icona sul desktop facoltativa, "Avvia con Windows" (attivo di default)
+- disinstallazione da "App installate"; le catture e le impostazioni restano
+- se ScreenLove è aperto, l'installer propone di chiuderlo e il disinstallatore chiede di uscire
+
+### Aggiornamenti
+
+All'avvio (al massimo una volta al giorno, disattivabile nelle Impostazioni) ScreenLove legge l'ultima
+release su GitHub. Se è più recente mostra una notifica; da lì, dal menu dell'icona ("Cerca aggiornamenti…")
+o dalle Impostazioni ("Cerca ora") si aprono le novità con il pulsante **Aggiorna ora**. Il pulsante:
+1. scarica l'installer;
+2. chiude ScreenLove;
+3. installa la nuova versione senza domande;
+4. riapre l'app.
+
+La versione portatile (exe senza installer) apre invece la pagina della release.
+- Si scaricano solo file delle release di questo repository.
+- `ScreenLove.exe --check-updates` controlla subito e mostra sempre l'esito.
+- Per provare senza GitHub: `SCREENLOVE_UPDATE_FEED` = percorso di un file JSON nel formato di `/releases/latest`.
+
+### Pubblicare una release
+
+```bash
+git tag v0.2.0
+```
+
+```bash
+git push origin v0.2.0
+```
+
+Il workflow `.github/workflows/release.yml` fa tutto da solo:
+- esegue i controlli automatici;
+- compila x64 e ARM64;
+- crea installer e zip;
+- pubblica la release "ScreenLove 0.2.0" con le note generate dai commit.
+
+Le copie installate la trovano al controllo successivo. Dalla scheda Actions si può anche solo compilare
+(senza pubblicare) con "Run workflow".
 
 L'icona dell'eseguibile (`src/ScreenLove/app.ico`) si rigenera con `scripts\make-icon.ps1`.
 
@@ -120,6 +166,9 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `Options/` | finestra delle impostazioni |
 | `Ocr/` | finestra del testo riconosciuto (OCR e codici QR/a barre) |
 | `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, effetti, superficie di disegno, finestra editor |
+| `Options/` → anche `UpdateWindow`, `Services/Updater` | aggiornamenti dalle release di GitHub |
+| `installer/` | script Inno Setup dell'installer |
+| `.github/workflows/` | release automatica da tag |
 | `tests/ScreenLove.Checks` | controlli automatici |
 
 ## Prossimi passi (roadmap)
@@ -127,4 +176,5 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 1. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
 2. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
 3. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
-4. Condivisione (link, cloud, email), più lingue, installer
+4. Condivisione (link, cloud, email), più lingue
+5. Firma del codice (niente avviso SmartScreen al primo avvio)

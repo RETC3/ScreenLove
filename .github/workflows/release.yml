@@ -1,0 +1,73 @@
+# Release di ScreenLove: si avvia con un tag di versione, per esempio
+#   git tag v0.2.0
+#   git push origin v0.2.0
+# Compila l'eseguibile autonomo (x64 e ARM64), crea l'installer con Inno Setup, esegue i controlli
+# automatici (senza la parte video, che richiede uno schermo) e pubblica la release su GitHub con
+# installer e zip. L'app installata trova la nuova versione da sola e propone l'aggiornamento.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versione da compilare senza pubblicare (es. 0.2.0)'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Versione
+        id: version
+        shell: pwsh
+        run: |
+          $v = if ('${{ github.event_name }}' -eq 'push') { '${{ github.ref_name }}'.TrimStart('v') } else { '${{ inputs.version }}' }
+          if ($v -notmatch '^\d+\.\d+\.\d+$') { throw "Versione non valida: $v" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup --no-progress -y
+          }
+          "${env:ProgramFiles(x86)}\Inno Setup 6" >> $env:GITHUB_PATH
+
+      - name: Controlli automatici
+        shell: pwsh
+        run: dotnet run --project tests/ScreenLove.Checks -c Release -- --no-video
+
+      - name: Pubblicazione, zip e installer
+        shell: pwsh
+        run: ./scripts/publish.ps1 -Version ${{ steps.version.outputs.version }} -Arm64 -Zip -Installer
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScreenLove-${{ steps.version.outputs.version }}
+          path: |
+            dist/ScreenLove-Setup-*.exe
+            dist/ScreenLove-*.zip
+
+      - name: Release su GitHub
+        if: github.event_name == 'push'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ steps.version.outputs.version }}'
+          gh release create "v$v" `
+            "dist/ScreenLove-Setup-$v.exe" `
+            "dist/ScreenLove-$v-win-x64.zip" `
+            "dist/ScreenLove-$v-win-arm64.zip" `
+            --title "ScreenLove $v" --generate-notes
