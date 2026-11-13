@@ -2,8 +2,9 @@
 #   git tag v0.2.0
 #   git push origin v0.2.0
 # Compila l'eseguibile autonomo (x64 e ARM64), crea l'installer con Inno Setup, esegue i controlli
-# automatici (senza la parte video, che richiede uno schermo) e pubblica la release su GitHub con
-# installer e zip. L'app installata trova la nuova versione da sola e propone l'aggiornamento.
+# automatici (senza la parte video, che richiede uno schermo), carica i file su Cloudflare R2,
+# pubblica la release su GitHub e aggiorna il sito https://screenlove.pages.dev.
+# L'app installata trova la nuova versione da sola e propone l'aggiornamento.
 name: Release
 
 on:
@@ -21,6 +22,12 @@ permissions:
 jobs:
   release:
     runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      BUCKET: screenlove-downloads
     steps:
       - uses: actions/checkout@v4
 
@@ -52,12 +59,41 @@ jobs:
         shell: pwsh
         run: ./scripts/publish.ps1 -Version ${{ steps.version.outputs.version }} -Arm64 -Zip -Installer
 
+      - name: Impronte SHA-256
+        shell: pwsh
+        run: |
+          $v = '${{ steps.version.outputs.version }}'
+          $files = "ScreenLove-Setup-$v.exe", "ScreenLove-$v-win-x64.zip", "ScreenLove-$v-win-arm64.zip"
+          $lines = foreach ($f in $files) { "{0}  {1}" -f (Get-FileHash "dist/$f" -Algorithm SHA256).Hash.ToLower(), $f }
+          [IO.File]::WriteAllText("$PWD/dist/SHA256SUMS.txt", ($lines -join "`n") + "`n")
+          Get-Content dist/SHA256SUMS.txt
+
       - uses: actions/upload-artifact@v4
         with:
           name: ScreenLove-${{ steps.version.outputs.version }}
           path: |
             dist/ScreenLove-Setup-*.exe
             dist/ScreenLove-*.zip
+            dist/SHA256SUMS.txt
+
+      - name: Caricamento su Cloudflare R2
+        if: github.event_name == 'push' && env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        shell: pwsh
+        run: |
+          $v = '${{ steps.version.outputs.version }}'
+          $buckets = npx --yes wrangler@4 r2 bucket list 2>$null | Out-String
+          if ($buckets -notmatch $env:BUCKET) {
+            npx --yes wrangler@4 r2 bucket create $env:BUCKET
+            if ($LASTEXITCODE -ne 0) {
+              "::warning::R2 non disponibile (va attivato nel pannello Cloudflare): i download passeranno dalla release su GitHub."
+              exit 0
+            }
+          }
+          foreach ($f in "ScreenLove-Setup-$v.exe", "ScreenLove-$v-win-x64.zip", "ScreenLove-$v-win-arm64.zip", "SHA256SUMS.txt") {
+            $type = if ($f.EndsWith('.zip')) { 'application/zip' } elseif ($f.EndsWith('.txt')) { 'text/plain' } else { 'application/vnd.microsoft.portable-executable' }
+            npx --yes wrangler@4 r2 object put "$env:BUCKET/$f" --file "dist/$f" --content-type $type --remote
+            if ($LASTEXITCODE -ne 0) { throw "Caricamento di $f su R2 non riuscito" }
+          }
 
       - name: Release su GitHub
         if: github.event_name == 'push'
@@ -66,8 +102,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $v = '${{ steps.version.outputs.version }}'
+          # Novità = messaggio del tag annotato (git tag -a v0.2.0 -m "..."); se manca, note automatiche.
+          git fetch --force origin "refs/tags/v${v}:refs/tags/v${v}" 2>$null
+          $message = (git for-each-ref "refs/tags/v$v" --format='%(contents)' | Out-String).Trim()
+          $notes = @()
+          if ($message -and $message -ne "ScreenLove $v") {
+            [IO.File]::WriteAllText("$PWD/dist/notes.md", $message + "`n")
+            $notes = @('--notes-file', 'dist/notes.md')
+          } else {
+            $notes = @('--generate-notes')
+          }
           gh release create "v$v" `
             "dist/ScreenLove-Setup-$v.exe" `
             "dist/ScreenLove-$v-win-x64.zip" `
             "dist/ScreenLove-$v-win-arm64.zip" `
-            --title "ScreenLove $v" --generate-notes
+            "dist/SHA256SUMS.txt" `
+            --title "ScreenLove $v" @notes
+
+  site:
+    needs: release
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/site.yml
+    with:
+      tag: v${{ needs.release.outputs.version }}
+    secrets: inherit

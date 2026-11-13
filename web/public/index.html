@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScreenLove — cattura dello schermo per Windows</title>
+<meta name="description" content="ScreenLove: catture dello schermo, cattura a scorrimento, testo (OCR) e QR code, video MP4, editor con annotazioni e documenti PDF/Word. Gratis per Windows 10 e 11.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="ScreenLove — cattura dello schermo per Windows">
+<meta property="og:description" content="Catture, scorrimento, OCR, video ed editor in un'unica app leggera.">
+<style>
+  :root {
+    --bg: #141518; --panel: #1E1F24; --panel2: #26282E; --line: #33363E;
+    --fg: #ECECEF; --muted: #9A9CA5; --accent: #FF3D7F; --accent2: #FF6B9D;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  }
+  a { color: var(--accent2); }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  header.top { border-bottom: 1px solid var(--line); background: rgba(20,21,24,.85); position: sticky; top: 0; backdrop-filter: blur(8px); z-index: 5; }
+  header.top .wrap { display: flex; align-items: center; gap: 12px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 18px; color: var(--fg); text-decoration: none; }
+  .brand img { width: 28px; height: 28px; }
+  nav { margin-left: auto; display: flex; gap: 22px; }
+  nav a { color: var(--muted); text-decoration: none; font-size: 15px; }
+  nav a:hover { color: var(--fg); }
+
+  .hero { padding: 72px 0 56px; display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; }
+  .hero h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.1; margin: 0 0 18px; letter-spacing: -.5px; }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p.lead { color: var(--muted); font-size: 19px; margin: 0 0 28px; max-width: 34em; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 24px; border-radius: 10px; font-weight: 600; font-size: 17px; text-decoration: none; border: 1px solid transparent; }
+  .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 8px 28px rgba(255,61,127,.28); }
+  .btn.primary:hover { background: #ff5590; }
+  .btn.ghost { color: var(--fg); border-color: var(--line); }
+  .btn.ghost:hover { border-color: var(--muted); }
+  .meta { color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+  /* finestra illustrativa dell'editor */
+  .mock { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.45); }
+  .mock .bar { display: flex; gap: 6px; padding: 10px 12px; background: var(--panel2); border-bottom: 1px solid var(--line); align-items: center; }
+  .mock .bar span { font-size: 12px; color: var(--fg); padding: 4px 9px; border-radius: 6px; background: #30333A; white-space: nowrap; }
+  .mock .bar span.on { background: var(--accent); color: #fff; }
+  .mock .canvas { position: relative; height: 290px; background: #101114; padding: 22px; }
+  .shot { position: absolute; inset: 22px; background: #f4f5f7; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 26px rgba(0,0,0,.5); }
+  .shot .line { height: 10px; border-radius: 5px; background: #d9dce2; margin: 14px 18px 0; }
+  .shot .line.s { width: 45%; } .shot .line.m { width: 70%; } .shot .line.t { height: 18px; width: 38%; background: #b9bec8; margin-top: 20px; }
+  .shot .box { position: absolute; left: 18px; bottom: 22px; width: 46%; height: 72px; border: 3px solid var(--accent); border-radius: 6px; }
+  .shot .blur { position: absolute; right: 22px; top: 54px; width: 32%; height: 22px; border-radius: 4px; background: repeating-linear-gradient(90deg,#aab0bb 0 8px,#c4c9d2 8px 16px); }
+  .shot .step { position: absolute; left: 50%; bottom: 68px; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 700; display: grid; place-items: center; font-size: 15px; }
+  .shot svg { position: absolute; right: 14%; bottom: 28px; width: 34%; height: 70px; }
+
+  section { padding: 56px 0; border-top: 1px solid var(--line); }
+  section h2 { font-size: 30px; margin: 0 0 8px; }
+  section p.sub { color: var(--muted); margin: 0 0 32px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+  .card .ico { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,61,127,.14); color: var(--accent); display: grid; place-items: center; font-size: 20px; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+
+  table.keys { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  table.keys td { padding: 12px 18px; border-top: 1px solid var(--line); }
+  table.keys tr:first-child td { border-top: 0; }
+  kbd { font: 13px/1 "Cascadia Mono", Consolas, monospace; background: var(--panel2); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 4px 8px; white-space: nowrap; }
+
+  .dl { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
+  .dl .card.main { border-color: rgba(255,61,127,.5); }
+  .files { list-style: none; padding: 0; margin: 12px 0 0; }
+  .files li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  .files li:first-child { border-top: 0; }
+  .files span { color: var(--muted); white-space: nowrap; }
+  ol.steps { margin: 10px 0 0; padding-left: 20px; color: var(--muted); }
+  ol.steps li { margin: 6px 0; }
+  .notes { white-space: pre-wrap; color: var(--muted); font-size: 14px; max-height: 220px; overflow: auto; margin-top: 10px; }
+
+  footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; padding-top: 44px; }
+    .grid { grid-template-columns: 1fr 1fr; }
+    .dl { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
+  @media (max-width: 560px) {
+    .grid { grid-template-columns: 1fr; }
+    .mock .bar span:nth-child(n+5) { display: none; }
+    table.keys td { padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="/favicon.svg" alt="">ScreenLove</a>
+    <nav>
+      <a href="#funzioni">Funzioni</a>
+      <a href="#tasti">Tasti rapidi</a>
+      <a href="#scarica">Scarica</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Cattura, annota, <em>condividi</em>.</h1>
+      <p class="lead">ScreenLove è lo strumento di cattura dello schermo per Windows: immagini, pagine intere a scorrimento,
+        testo e QR code, video MP4 con audio e un editor per spiegare tutto con frecce, numeri e sfocature.</p>
+      <div class="cta">
+        <a class="btn primary" href="/download/latest" data-download>⬇&nbsp; Scarica per Windows</a>
+        <a class="btn ghost" href="#funzioni">Scopri le funzioni</a>
+      </div>
+      <div class="meta" id="hero-meta">Gratis · Windows 10 (2004) e Windows 11 · nessun account richiesto</div>
+    </div>
+
+    <div class="mock" aria-hidden="true">
+      <div class="bar">
+        <span>↖ Seleziona</span><span class="on">➜ Freccia</span><span>▢ Rettangolo</span><span>① Step</span><span>▦ Sfoca</span><span>T Testo</span>
+      </div>
+      <div class="canvas">
+        <div class="shot">
+          <div class="line t"></div>
+          <div class="line m"></div>
+          <div class="line s"></div>
+          <div class="line m"></div>
+          <div class="blur"></div>
+          <div class="box"></div>
+          <div class="step">1</div>
+          <svg viewBox="0 0 200 70" fill="none"><path d="M190 8 C 150 20 110 40 40 52" stroke="#FF3D7F" stroke-width="6" stroke-linecap="round"/><path d="M52 38 L 30 54 L 56 62" stroke="#FF3D7F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<section id="funzioni">
+  <div class="wrap">
+    <h2>Tutto quello che serve, in un'app leggera</h2>
+    <p class="sub">Parte con Windows, resta nell'area di notifica e risponde ai tasti rapidi.</p>
+    <div class="grid">
+      <div class="card"><div class="ico">▢</div><h3>Area, finestra, schermo</h3>
+        <p>La finestra sotto il cursore si evidenzia da sola; lente d'ingrandimento, coordinate e colore del pixel. Multi-monitor.</p></div>
+      <div class="card"><div class="ico">⇣</div><h3>Cattura a scorrimento</h3>
+        <p>Pagine web e documenti lunghi in un'unica immagine: scorre, cattura e cuce, tenendo una sola volta intestazioni fisse.</p></div>
+      <div class="card"><div class="ico">T</div><h3>Testo (OCR) e QR code</h3>
+        <p>Seleziona una zona e il testo finisce negli appunti, offline. Legge anche QR code e codici a barre.</p></div>
+      <div class="card"><div class="ico">●</div><h3>Video MP4</h3>
+        <p>Registra una zona con audio di sistema e microfono, pausa, webcam in sovrimpressione. Poi taglia e unisci i video.</p></div>
+      <div class="card"><div class="ico">➜</div><h3>Editor</h3>
+        <p>Frecce, forme, evidenziatore, passaggi numerati, sfocatura dei dati sensibili, spotlight, ritaglio, ombre e bordi.</p></div>
+      <div class="card"><div class="ico">▤</div><h3>Documenti</h3>
+        <p>Da più catture a una guida passo passo in PDF, Word o HTML, con titoli e commenti.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="tasti">
+  <div class="wrap">
+    <h2>Tasti rapidi</h2>
+    <p class="sub">Tutti personalizzabili nelle Impostazioni.</p>
+    <table class="keys">
+      <tr><td><kbd>Stamp</kbd></td><td>Cattura area o finestra</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Stamp</kbd></td><td>Schermo intero</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Maiusc</kbd> + <kbd>Stamp</kbd></td><td>Cattura a scorrimento</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Stamp</kbd></td><td>Testo (OCR) e QR code</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>R</kbd></td><td>Avvia / ferma la registrazione video</td></tr>
+      <tr><td><kbd>Maiusc</kbd> + <kbd>Stamp</kbd></td><td>Cattura con conto alla rovescia (per i menu)</td></tr>
+    </table>
+  </div>
+</section>
+
+<section id="scarica">
+  <div class="wrap">
+    <h2>Scarica ScreenLove</h2>
+    <p class="sub" id="dl-sub">Ultima versione, con aggiornamenti automatici.</p>
+    <div class="dl">
+      <div class="card main">
+        <h3>Installer per Windows</h3>
+        <p style="color:var(--muted);margin:0 0 16px">Consigliato: menu Start, avvio con Windows e aggiornamenti automatici. Non servono permessi di amministratore.</p>
+        <a class="btn primary" href="/download/latest" data-download id="dl-main">⬇&nbsp; Scarica l'installer</a>
+        <ol class="steps">
+          <li>Apri il file scaricato.</li>
+          <li>Se Windows mostra "PC protetto da Windows", scegli <b>Ulteriori informazioni → Esegui comunque</b>
+            (succede con le app nuove non ancora firmate).</li>
+          <li>Premi <kbd>Stamp</kbd> e cattura.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Tutti i file</h3>
+        <ul class="files" id="files">
+          <li><a href="/download/latest">Installer (x64)</a><span>—</span></li>
+        </ul>
+        <p style="color:var(--muted);font-size:14px;margin:14px 0 0">Gli zip contengono la versione portatile: un solo <code>ScreenLove.exe</code>
+          da avviare senza installare (senza aggiornamenti automatici).</p>
+        <div class="notes" id="notes" hidden></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>♥ ScreenLove <span id="foot-ver"></span></span>
+    <span><a href="https://github.com/RETC3/ScreenLove">Codice sorgente</a></span>
+  </div>
+</footer>
+
+<script>
+  // Versione, dimensioni e note dall'ultima release (latest.json è generato a ogni release).
+  (async () => {
+    try {
+      const res = await fetch('/latest.json', { cache: 'no-store' });
+      if (!res.ok) return;
+      const r = await res.json();
+      const version = String(r.tag_name || '').replace(/^v/i, '');
+      const mb = n => (n / 1048576).toFixed(0) + ' MB';
+      const labels = [
+        [/^ScreenLove-Setup-.*\.exe$/i, 'Installer (x64)'],
+        [/-win-x64\.zip$/i, 'Portatile x64 (zip)'],
+        [/-win-arm64\.zip$/i, 'Portatile ARM64 (zip)'],
+      ];
+      const files = document.getElementById('files');
+      files.innerHTML = '';
+      for (const [re, label] of labels) {
+        const a = (r.assets || []).find(x => re.test(x.name));
+        if (!a) continue;
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = '/download/' + encodeURIComponent(a.name);
+        link.textContent = label;
+        const size = document.createElement('span');
+        size.textContent = mb(a.size);
+        li.append(link, size);
+        files.append(li);
+      }
+      const setup = (r.assets || []).find(x => labels[0][0].test(x.name));
+      const date = r.published_at ? new Date(r.published_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+      document.getElementById('dl-sub').textContent =
+        `Versione ${version}${date ? ' del ' + date : ''}, con aggiornamenti automatici.`;
+      document.getElementById('foot-ver').textContent = version;
+      if (setup) {
+        document.getElementById('hero-meta').textContent =
+          `Versione ${version} · ${mb(setup.size)} · Windows 10 (2004) e Windows 11 · gratis, nessun account`;
+      }
+      if (r.body) {
+        const notes = document.getElementById('notes');
+        notes.textContent = 'Novità\n' + r.body;
+        notes.hidden = false;
+      }
+    } catch { /* la pagina funziona anche senza */ }
+  })();
+</script>
+</body>
+</html>

@@ -3,3 +3,8 @@ obj/
 .vs/
 *.user
 dist/
+
+# sito: generati
+web/public/latest.json
+.wrangler/
+node_modules/

@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -13,25 +14,33 @@ using System.Threading.Tasks;
 namespace ScreenLove.Services
 {
     /// <summary>Una release più recente di quella in uso.</summary>
-    public sealed record UpdateInfo(Version Version, string PageUrl, string Notes, string? SetupUrl, string? SetupName, long SetupSize);
+    public sealed record UpdateInfo(Version Version, string PageUrl, string Notes,
+        string? SetupUrl, string? SetupName, long SetupSize, string? SetupSha256 = null);
 
     /// <summary>
-    /// Aggiornamenti dalle release di GitHub: legge l'ultima release, scarica l'installer
-    /// (ScreenLove-Setup-x.y.z.exe) e lo avvia in modalità silenziosa; l'installer riapre l'app.
+    /// Aggiornamenti: legge l'ultima release dal sito di ScreenLove (latest.json) o, se il sito non
+    /// risponde, da GitHub; scarica l'installer (ScreenLove-Setup-x.y.z.exe), ne controlla dimensione e
+    /// impronta SHA-256 e lo avvia in modalità silenziosa; l'installer riapre l'app.
     /// </summary>
     public static class Updater
     {
         private const string Repo = "RETC3/ScreenLove";
-        private static readonly string OfficialDownloadPrefix = $"https://github.com/{Repo}/releases/download/";
+        public const string SiteUrl = "https://screenlove.pages.dev";
+
+        private static readonly string GitHubDownloadPrefix = $"https://github.com/{Repo}/releases/download/";
+        private static readonly string SiteDownloadPrefix = SiteUrl + "/download/";
 
         /// <summary>
-        /// Indirizzo dell'ultima release. SCREENLOVE_UPDATE_FEED permette di provare gli aggiornamenti
-        /// con un file JSON locale (stesso formato dell'API di GitHub).
+        /// Fonti dell'ultima release, in ordine. SCREENLOVE_UPDATE_FEED permette di provare gli aggiornamenti
+        /// con un file JSON locale (stesso formato di latest.json e dell'API di GitHub).
         /// </summary>
         private static string? FeedOverride => Environment.GetEnvironmentVariable("SCREENLOVE_UPDATE_FEED");
-        private static string FeedUrl => FeedOverride ?? $"https://api.github.com/repos/{Repo}/releases/latest";
 
-        public static string ReleasesPage => $"https://github.com/{Repo}/releases";
+        private static IEnumerable<string> Feeds => FeedOverride != null
+            ? new[] { FeedOverride }
+            : new[] { SiteUrl + "/latest.json", $"https://api.github.com/repos/{Repo}/releases/latest" };
+
+        public static string ReleasesPage => SiteUrl + "/#scarica";
 
         public static Version CurrentVersion
         {
@@ -52,32 +61,49 @@ namespace ScreenLove.Services
         {
             var http = new HttpClient { Timeout = timeout };
             http.DefaultRequestHeaders.UserAgent.ParseAdd("ScreenLove-Updater");
-            http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+            http.DefaultRequestHeaders.Accept.ParseAdd("application/json");
             return http;
         }
 
         /// <summary>Restituisce la release più recente se è più nuova di quella in uso, altrimenti null.</summary>
         public static async Task<UpdateInfo?> CheckAsync(CancellationToken ct = default)
         {
-            string json;
-            var feed = new Uri(FeedUrl);
-            if (feed.IsFile)
-                json = await File.ReadAllTextAsync(feed.LocalPath, ct);
-            else
+            Exception? last = null;
+            foreach (var url in Feeds)
             {
-                using var http = CreateClient(TimeSpan.FromSeconds(15));
-                using var resp = await http.GetAsync(feed, ct);
-                if (resp.StatusCode == HttpStatusCode.NotFound)
-                    throw new InvalidOperationException("Non ci sono ancora release pubbliche di ScreenLove su GitHub.");
-                if ((int)resp.StatusCode == 403)
-                    throw new InvalidOperationException("GitHub ha limitato le richieste: riprova tra un'ora.");
-                resp.EnsureSuccessStatusCode();
-                json = await resp.Content.ReadAsStringAsync(ct);
+                try
+                {
+                    return Parse(await ReadFeedAsync(url, ct), CurrentVersion);
+                }
+                catch (OperationCanceledException) when (ct.IsCancellationRequested)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    last = ex; // si prova la fonte successiva
+                }
             }
-            return Parse(json, CurrentVersion);
+            throw last ?? new InvalidOperationException("Nessuna fonte per gli aggiornamenti.");
         }
 
-        /// <summary>Interpreta la risposta di /releases/latest (separato per i controlli automatici).</summary>
+        private static async Task<string> ReadFeedAsync(string url, CancellationToken ct)
+        {
+            var feed = new Uri(url);
+            if (feed.IsFile)
+                return await File.ReadAllTextAsync(feed.LocalPath, ct);
+
+            using var http = CreateClient(TimeSpan.FromSeconds(15));
+            using var resp = await http.GetAsync(feed, ct);
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+                throw new InvalidOperationException("Non ci sono ancora versioni pubblicate di ScreenLove.");
+            if ((int)resp.StatusCode == 403 || (int)resp.StatusCode == 429)
+                throw new InvalidOperationException("Troppe richieste al server degli aggiornamenti: riprova tra un'ora.");
+            resp.EnsureSuccessStatusCode();
+            return await resp.Content.ReadAsStringAsync(ct);
+        }
+
+        /// <summary>Interpreta latest.json o la risposta di /releases/latest di GitHub (stesso formato).</summary>
         public static UpdateInfo? Parse(string json, Version current)
         {
             using var doc = JsonDocument.Parse(json);
@@ -89,7 +115,7 @@ namespace ScreenLove.Services
             version = Normalize(version);
             if (version <= current) return null;
 
-            string? setupUrl = null, setupName = null;
+            string? setupUrl = null, setupName = null, sha = null;
             long setupSize = 0;
             if (root.TryGetProperty("assets", out var assets) && assets.ValueKind == JsonValueKind.Array)
             {
@@ -100,31 +126,36 @@ namespace ScreenLove.Services
                     setupName = name;
                     setupUrl = Str(a, "browser_download_url");
                     setupSize = a.TryGetProperty("size", out var s) && s.TryGetInt64(out var n) ? n : 0;
+                    sha = Str(a, "sha256");
+                    if (sha != null && !Regex.IsMatch(sha, "^[0-9a-fA-F]{64}$")) sha = null;
                     break;
                 }
             }
 
+            // Si apre solo una pagina del sito o del repository, non un indirizzo qualsiasi.
             var page = Str(root, "html_url");
-            if (page == null || !page.StartsWith($"https://github.com/{Repo}/", StringComparison.OrdinalIgnoreCase))
+            if (page == null || !(page.StartsWith(SiteUrl + "/", StringComparison.OrdinalIgnoreCase)
+                                  || page.StartsWith($"https://github.com/{Repo}/", StringComparison.OrdinalIgnoreCase)))
                 page = ReleasesPage;
-            return new UpdateInfo(version, page, (Str(root, "body") ?? "").Trim(),
-                setupUrl, setupName, setupSize);
+
+            return new UpdateInfo(version, page, (Str(root, "body") ?? "").Trim(), setupUrl, setupName, setupSize, sha?.ToLowerInvariant());
         }
+
+        /// <summary>True se da questo indirizzo si può scaricare ed eseguire un installer.</summary>
+        public static bool IsTrustedDownload(string url) =>
+            url.StartsWith(SiteDownloadPrefix, StringComparison.OrdinalIgnoreCase)
+            || url.StartsWith(GitHubDownloadPrefix, StringComparison.OrdinalIgnoreCase)
+            || (FeedOverride != null && new Uri(url).IsFile);
 
         /// <summary>Scarica l'installer nella cartella temporanea e ne restituisce il percorso.</summary>
         public static async Task<string> DownloadSetupAsync(UpdateInfo update, IProgress<double>? progress, CancellationToken ct = default)
         {
             if (update.SetupUrl == null || update.SetupName == null)
-                throw new InvalidOperationException("Questa release non contiene l'installer.");
-
-            var source = new Uri(update.SetupUrl);
-            // Si scaricano ed eseguono solo file delle release di questo repository
-            // (o file locali quando si prova con SCREENLOVE_UPDATE_FEED).
-            bool allowed = update.SetupUrl.StartsWith(OfficialDownloadPrefix, StringComparison.OrdinalIgnoreCase)
-                           || (FeedOverride != null && source.IsFile);
-            if (!allowed)
+                throw new InvalidOperationException("Questa versione non contiene l'installer.");
+            if (!IsTrustedDownload(update.SetupUrl))
                 throw new InvalidOperationException("Indirizzo dell'installer non riconosciuto: aggiornamento annullato.");
 
+            var source = new Uri(update.SetupUrl);
             var folder = Path.Combine(Path.GetTempPath(), "ScreenLove-aggiornamento");
             Directory.CreateDirectory(folder);
             foreach (var old in Directory.GetFiles(folder, "*.exe"))
@@ -132,50 +163,64 @@ namespace ScreenLove.Services
             var target = Path.Combine(folder, Path.GetFileName(update.SetupName));
             var partial = target + ".part";
 
-            await using (var output = File.Create(partial))
+            try
             {
-                Stream input;
-                long total;
-                HttpResponseMessage? resp = null;
-                HttpClient? http = null;
-                if (source.IsFile)
+                await using (var output = File.Create(partial))
+                using (var sha = SHA256.Create())
                 {
-                    input = File.OpenRead(source.LocalPath);
-                    total = input.Length;
-                }
-                else
-                {
-                    http = CreateClient(TimeSpan.FromMinutes(30));
-                    resp = await http.GetAsync(source, HttpCompletionOption.ResponseHeadersRead, ct);
-                    resp.EnsureSuccessStatusCode();
-                    total = resp.Content.Headers.ContentLength ?? update.SetupSize;
-                    input = await resp.Content.ReadAsStreamAsync(ct);
-                }
-
-                try
-                {
-                    var buffer = new byte[81920];
-                    long done = 0;
-                    int read;
-                    while ((read = await input.ReadAsync(buffer, ct)) > 0)
+                    Stream input;
+                    long total;
+                    HttpResponseMessage? resp = null;
+                    HttpClient? http = null;
+                    if (source.IsFile)
                     {
-                        await output.WriteAsync(buffer.AsMemory(0, read), ct);
-                        done += read;
-                        if (total > 0) progress?.Report((double)done / total);
+                        input = File.OpenRead(source.LocalPath);
+                        total = input.Length;
                     }
-                    if (update.SetupSize > 0 && done != update.SetupSize)
-                        throw new IOException($"Download incompleto ({done:N0} di {update.SetupSize:N0} byte).");
-                }
-                finally
-                {
-                    await input.DisposeAsync();
-                    resp?.Dispose();
-                    http?.Dispose();
-                }
-            }
+                    else
+                    {
+                        http = CreateClient(TimeSpan.FromMinutes(30));
+                        resp = await http.GetAsync(source, HttpCompletionOption.ResponseHeadersRead, ct);
+                        resp.EnsureSuccessStatusCode();
+                        total = resp.Content.Headers.ContentLength ?? update.SetupSize;
+                        input = await resp.Content.ReadAsStreamAsync(ct);
+                    }
 
-            File.Move(partial, target, overwrite: true);
-            return target;
+                    try
+                    {
+                        var buffer = new byte[81920];
+                        long done = 0;
+                        int read;
+                        while ((read = await input.ReadAsync(buffer, ct)) > 0)
+                        {
+                            await output.WriteAsync(buffer.AsMemory(0, read), ct);
+                            sha.TransformBlock(buffer, 0, read, null, 0);
+                            done += read;
+                            if (total > 0) progress?.Report((double)done / total);
+                        }
+                        sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+
+                        if (update.SetupSize > 0 && done != update.SetupSize)
+                            throw new IOException($"Download incompleto ({done:N0} di {update.SetupSize:N0} byte).");
+                        if (update.SetupSha256 != null && Convert.ToHexString(sha.Hash!).ToLowerInvariant() != update.SetupSha256)
+                            throw new IOException("Il file scaricato non corrisponde a quello pubblicato (impronta SHA-256 diversa).");
+                    }
+                    finally
+                    {
+                        await input.DisposeAsync();
+                        resp?.Dispose();
+                        http?.Dispose();
+                    }
+                }
+
+                File.Move(partial, target, overwrite: true);
+                return target;
+            }
+            catch
+            {
+                try { File.Delete(partial); } catch { /* niente */ }
+                throw;
+            }
         }
 
         /// <summary>

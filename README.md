@@ -106,22 +106,27 @@ amministratore, in `%LOCALAPPDATA%\Programs\ScreenLove`:
 ### Aggiornamenti
 
 All'avvio (al massimo una volta al giorno, disattivabile nelle Impostazioni) ScreenLove legge l'ultima
-release su GitHub. Se è più recente mostra una notifica; da lì, dal menu dell'icona ("Cerca aggiornamenti…")
+versione dal sito (`https://screenlove.pages.dev/latest.json`, con GitHub come riserva). Se è più recente mostra una notifica; da lì, dal menu dell'icona ("Cerca aggiornamenti…")
 o dalle Impostazioni ("Cerca ora") si aprono le novità con il pulsante **Aggiorna ora**. Il pulsante:
-1. scarica l'installer;
+1. scarica l'installer e ne controlla dimensione e impronta SHA-256;
 2. chiude ScreenLove;
 3. installa la nuova versione senza domande;
 4. riapre l'app.
 
 La versione portatile (exe senza installer) apre invece la pagina della release.
-- Si scaricano solo file delle release di questo repository.
+- Si scaricano solo file dal sito di ScreenLove o dalle release di questo repository.
 - `ScreenLove.exe --check-updates` controlla subito e mostra sempre l'esito.
 - Per provare senza GitHub: `SCREENLOVE_UPDATE_FEED` = percorso di un file JSON nel formato di `/releases/latest`.
+
+### Sito e download
+
+Il sito **https://screenlove.pages.dev** (Cloudflare Pages, cartella `web/`) presenta l'app e la fa scaricare
+da `/download/latest`; i file stanno su Cloudflare R2. Configurazione e dettagli: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 ### Pubblicare una release
 
 ```bash
-git tag v0.2.0
+git tag -a v0.2.0 -m "Novità: …"
 ```
 
 ```bash
@@ -132,7 +137,9 @@ Il workflow `.github/workflows/release.yml` fa tutto da solo:
 - esegue i controlli automatici;
 - compila x64 e ARM64;
 - crea installer e zip;
-- pubblica la release "ScreenLove 0.2.0" con le note generate dai commit.
+- carica installer e zip su Cloudflare R2;
+- pubblica la release "ScreenLove 0.2.0" (novità = messaggio del tag, altrimenti note automatiche);
+- aggiorna il sito https://screenlove.pages.dev (pagina e `latest.json`).
 
 Le copie installate la trovano al controllo successivo. Dalla scheda Actions si può anche solo compilare
 (senza pubblicare) con "Run workflow".
@@ -169,7 +176,8 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `Editor/` | documento (immagine + annotazioni), annotazioni vettoriali, effetti, superficie di disegno, finestra editor |
 | `Options/` → anche `UpdateWindow`, `Services/Updater` | aggiornamenti dalle release di GitHub |
 | `installer/` | script Inno Setup dell'installer |
-| `.github/workflows/` | release automatica da tag |
+| `web/` | sito su Cloudflare Pages: pagina, download (Pages Functions + R2) |
+| `.github/workflows/` | release automatica da tag, pubblicazione del sito |
 | `tests/ScreenLove.Checks` | controlli automatici |
 
 ## Prossimi passi (roadmap)

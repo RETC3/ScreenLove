@@ -170,6 +170,34 @@ namespace ScreenLove.Checks
             Check(Updater.Parse(Release("v0.3.0", pre: true), current) == null, "le pre-release vengono ignorate");
             Check(Updater.Parse(Release("nightly"), current) == null, "tag non numerico ignorato");
             Check(Updater.CurrentVersion.Major >= 0 && Updater.CurrentVersion.Revision == -1, $"versione corrente leggibile ({Updater.CurrentVersion})");
+
+            // indirizzi da cui si accetta di scaricare ed eseguire l'installer
+            Check(Updater.IsTrustedDownload(Updater.SiteUrl + "/download/ScreenLove-Setup-0.2.0.exe"), "download dal sito ammesso");
+            Check(Updater.IsTrustedDownload("https://github.com/RETC3/ScreenLove/releases/download/v0.2.0/ScreenLove-Setup-0.2.0.exe"), "download dalla release GitHub ammesso");
+            Check(!Updater.IsTrustedDownload("https://example.com/ScreenLove-Setup-0.2.0.exe"), "download da altri siti rifiutato");
+            Check(!Updater.IsTrustedDownload("https://screenlove.pages.dev.example.com/download/x.exe"), "dominio che imita il sito rifiutato");
+
+            // impronta SHA-256: un file locale scaricato con l'impronta giusta e con una sbagliata
+            var fake = Path.Combine(_dir, "ScreenLove-Setup-0.2.0.exe");
+            File.WriteAllBytes(fake, System.Text.Encoding.ASCII.GetBytes("installer di prova"));
+            var good = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(fake))).ToLowerInvariant();
+            Environment.SetEnvironmentVariable("SCREENLOVE_UPDATE_FEED", Path.Combine(_dir, "feed.json"));
+            try
+            {
+                UpdateInfo Info(string sha) => new(new Version(0, 2, 0), Updater.ReleasesPage, "", new Uri(fake).AbsoluteUri,
+                    "ScreenLove-Setup-0.2.0.exe", new FileInfo(fake).Length, sha);
+                var ok = Updater.DownloadSetupAsync(Info(good), null).GetAwaiter().GetResult();
+                Check(File.Exists(ok), "impronta SHA-256 corretta: installer accettato");
+                bool rejected = false;
+                try { Updater.DownloadSetupAsync(Info(new string('0', 64)), null).GetAwaiter().GetResult(); }
+                catch (IOException) { rejected = true; }
+                Check(rejected && !Directory.GetFiles(Path.GetDirectoryName(ok)!, "*.part").Any(),
+                    "impronta SHA-256 sbagliata: installer rifiutato e file parziale eliminato");
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("SCREENLOVE_UPDATE_FEED", null);
+            }
         }
 
         private static void CheckSettings()
