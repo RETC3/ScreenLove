@@ -85,6 +85,12 @@ token di Access: in `web/wrangler.toml` vanno `ACCESS_TEAM_DOMAIN` (es. `nome.cl
 
 In locale la pagina è aperta: `web/.dev.vars` con `STATS_DEV_OPEN = "1"` (file non versionato).
 
+## Google Search Console
+
+La proprietà di tipo **Dominio** `screenlove.it` è verificata con un record DNS **TXT** su Cloudflare
+(`google-site-verification=...`, nome `@`): **non cancellarlo**, altrimenti Google toglie la verifica.
+La sitemap `https://screenlove.it/sitemap.xml` è già inviata; se aggiungi pagine, aggiungile anche lì.
+
 ## Controlli
 
 - `https://screenlove.it/latest.json`: ultima versione, dimensioni e impronte.
