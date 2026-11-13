@@ -17,8 +17,9 @@ export async function onRequest({ request, env, params }) {
 
   if (name === 'latest') {
     const latest = await env.ASSETS.fetch(new URL('/latest.json', request.url));
-    if (!latest.ok) return notFound();
-    const release = await latest.json();
+    if (!latest.ok || !(latest.headers.get('Content-Type') || '').includes('json')) return notFound();
+    let release;
+    try { release = await latest.json(); } catch { return notFound(); }
     const setup = (release.assets || []).find(a => /^ScreenLove-Setup-.*\.exe$/.test(a.name));
     if (!setup) return notFound();
     return new Response(null, {

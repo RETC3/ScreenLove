@@ -6,7 +6,8 @@
 param(
     [string]$Repo = 'RETC3/ScreenLove',
     [string]$Site = 'https://screenlove.pages.dev',
-    [string]$Out = "$PSScriptRoot\..\web\public\latest.json",
+    # Join-Path: il workflow del sito gira su Linux, dove "\" non separa le cartelle
+    [string]$Out = (Join-Path (Join-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'web') 'public') 'latest.json'),
     [string]$Tag  # facoltativo: una release precisa invece dell'ultima
 )
 $ErrorActionPreference = 'Stop'
@@ -54,5 +55,7 @@ $latest = [ordered]@{
 
 New-Item -ItemType Directory -Force (Split-Path $Out) | Out-Null
 $json = $latest | ConvertTo-Json -Depth 5
-[IO.File]::WriteAllText((Resolve-Path (Split-Path $Out)).Path + '\' + (Split-Path $Out -Leaf), $json, (New-Object Text.UTF8Encoding $false))
+$target = Join-Path (Resolve-Path (Split-Path $Out)).Path (Split-Path $Out -Leaf)
+[IO.File]::WriteAllText($target, $json, (New-Object Text.UTF8Encoding $false))
+Write-Host "Scritto: $target"
 Write-Host "latest.json: $($release.tag_name), $($assets.Count) file, impronte: $($sums.Count)"

@@ -46,7 +46,7 @@ jobs:
             echo "ok=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         if: steps.cf.outputs.ok == 'true'
 
       - name: latest.json dall'ultima release
@@ -57,8 +57,9 @@ jobs:
         run: |
           $tag = '${{ inputs.tag }}'
           if ($tag) { ./scripts/make-latest-json.ps1 -Tag $tag } else { ./scripts/make-latest-json.ps1 }
+          if (-not (Test-Path web/public/latest.json)) { throw "latest.json non creato" }
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         if: steps.cf.outputs.ok == 'true'
         with:
           node-version: '22'
@@ -85,6 +86,14 @@ jobs:
       - name: Controllo del sito
         if: steps.cf.outputs.ok == 'true'
         run: |
-          sleep 10
-          curl -fsS https://screenlove.pages.dev/latest.json | head -c 300; echo
-          curl -fsSI https://screenlove.pages.dev/download/latest | grep -i '^location'
+          # la nuova versione può impiegare qualche secondo a raggiungere tutti i server di Cloudflare
+          for i in $(seq 1 12); do
+            if curl -fsS https://screenlove.pages.dev/latest.json | grep -q '"tag_name"' \
+               && curl -fsSI https://screenlove.pages.dev/download/latest | grep -qi '^location'; then
+              echo "Sito pubblicato: latest.json e /download/latest rispondono."
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Il sito non risponde come previsto dopo 2 minuti."
+          exit 1
