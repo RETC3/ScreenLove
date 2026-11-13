@@ -1,6 +1,6 @@
 # Sito e download su Cloudflare
 
-Il sito **https://screenlove.pages.dev** (Cloudflare Pages) mostra ScreenLove e permette di scaricarlo:
+Il sito **https://screenlove.it** (Cloudflare Pages, progetto `screenlove`; `www.screenlove.it` e `screenlove.pages.dev` rimandano lì) mostra ScreenLove e permette di scaricarlo:
 - **la pagina:** `web/public/index.html`;
 - **i download:** passano da `/download/...` (`web/functions/download/[[path]].js`);
 - **i file** stanno in un bucket **Cloudflare R2** (`screenlove-downloads`). Se R2 non è attivo, il sito
@@ -62,7 +62,7 @@ I valori restano cifrati su GitHub e nessuno li può rileggere, nemmeno tu.
 
 ## Controlli
 
-- `https://screenlove.pages.dev/latest.json`: ultima versione, dimensioni e impronte.
-- `https://screenlove.pages.dev/download/latest`: scarica l'installer più recente.
+- `https://screenlove.it/latest.json`: ultima versione, dimensioni e impronte.
+- `https://screenlove.it/download/latest`: scarica l'installer più recente.
 - In locale: `cd web`, poi `npx wrangler@4 pages dev` e apri http://localhost:8788. Serve
   `web/public/latest.json`, che si crea con `scripts/make-latest-json.ps1`.

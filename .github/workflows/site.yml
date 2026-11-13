@@ -1,4 +1,4 @@
-# Pubblica il sito https://screenlove.pages.dev su Cloudflare Pages.
+# Pubblica il sito https://screenlove.it (Cloudflare Pages, progetto "screenlove").
 # Parte da solo quando cambia il sito (cartella web/) e dopo ogni release (dal workflow Release).
 # Servono i secret CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID (vedi docs/CLOUDFLARE.md):
 # senza, il workflow si limita a un avviso.
@@ -116,8 +116,8 @@ jobs:
         run: |
           # la nuova versione può impiegare qualche secondo a raggiungere tutti i server di Cloudflare
           for i in $(seq 1 12); do
-            if curl -fsS https://screenlove.pages.dev/latest.json | grep -q '"tag_name"' \
-               && curl -fsSI https://screenlove.pages.dev/download/latest | grep -qi '^location'; then
+            if curl -fsSL https://screenlove.it/latest.json | grep -q '"tag_name"' \
+               && curl -fsSI https://screenlove.it/download/latest | grep -qi '^location'; then
               echo "Sito pubblicato: latest.json e /download/latest rispondono."
               exit 0
             fi

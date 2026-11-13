@@ -173,9 +173,10 @@ namespace ScreenLove.Checks
 
             // indirizzi da cui si accetta di scaricare ed eseguire l'installer
             Check(Updater.IsTrustedDownload(Updater.SiteUrl + "/download/ScreenLove-Setup-0.2.0.exe"), "download dal sito ammesso");
+            Check(Updater.IsTrustedDownload(Updater.PagesUrl + "/download/ScreenLove-Setup-0.2.0.exe"), "download da screenlove.pages.dev ammesso");
             Check(Updater.IsTrustedDownload("https://github.com/RETC3/ScreenLove/releases/download/v0.2.0/ScreenLove-Setup-0.2.0.exe"), "download dalla release GitHub ammesso");
             Check(!Updater.IsTrustedDownload("https://example.com/ScreenLove-Setup-0.2.0.exe"), "download da altri siti rifiutato");
-            Check(!Updater.IsTrustedDownload("https://screenlove.pages.dev.example.com/download/x.exe"), "dominio che imita il sito rifiutato");
+            Check(!Updater.IsTrustedDownload("https://screenlove.it.example.com/download/x.exe"), "dominio che imita il sito rifiutato");
 
             // impronta SHA-256: un file locale scaricato con l'impronta giusta e con una sbagliata
             var fake = Path.Combine(_dir, "ScreenLove-Setup-0.2.0.exe");

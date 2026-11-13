@@ -1,4 +1,4 @@
-# Sito di ScreenLove su Cloudflare Pages (https://screenlove.pages.dev).
+# Sito di ScreenLove su Cloudflare Pages (https://screenlove.it, anche screenlove.pages.dev).
 # Pubblicato dal workflow .github/workflows/site.yml; in locale:  npx wrangler pages dev
 name = "screenlove"
 pages_build_output_dir = "public"

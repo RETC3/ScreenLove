@@ -25,10 +25,13 @@ namespace ScreenLove.Services
     public static class Updater
     {
         private const string Repo = "RETC3/ScreenLove";
-        public const string SiteUrl = "https://screenlove.pages.dev";
+        public const string SiteUrl = "https://screenlove.it";
+
+        /// <summary>Indirizzo di Cloudflare Pages dello stesso sito: riserva se il dominio non risponde.</summary>
+        public const string PagesUrl = "https://screenlove.pages.dev";
 
         private static readonly string GitHubDownloadPrefix = $"https://github.com/{Repo}/releases/download/";
-        private static readonly string SiteDownloadPrefix = SiteUrl + "/download/";
+        private static readonly string[] SiteDownloadPrefixes = { SiteUrl + "/download/", PagesUrl + "/download/" };
 
         /// <summary>
         /// Fonti dell'ultima release, in ordine. SCREENLOVE_UPDATE_FEED permette di provare gli aggiornamenti
@@ -38,7 +41,7 @@ namespace ScreenLove.Services
 
         private static IEnumerable<string> Feeds => FeedOverride != null
             ? new[] { FeedOverride }
-            : new[] { SiteUrl + "/latest.json", $"https://api.github.com/repos/{Repo}/releases/latest" };
+            : new[] { SiteUrl + "/latest.json", PagesUrl + "/latest.json", $"https://api.github.com/repos/{Repo}/releases/latest" };
 
         public static string ReleasesPage => SiteUrl + "/#scarica";
 
@@ -135,6 +138,7 @@ namespace ScreenLove.Services
             // Si apre solo una pagina del sito o del repository, non un indirizzo qualsiasi.
             var page = Str(root, "html_url");
             if (page == null || !(page.StartsWith(SiteUrl + "/", StringComparison.OrdinalIgnoreCase)
+                                  || page.StartsWith(PagesUrl + "/", StringComparison.OrdinalIgnoreCase)
                                   || page.StartsWith($"https://github.com/{Repo}/", StringComparison.OrdinalIgnoreCase)))
                 page = ReleasesPage;
 
@@ -143,7 +147,7 @@ namespace ScreenLove.Services
 
         /// <summary>True se da questo indirizzo si può scaricare ed eseguire un installer.</summary>
         public static bool IsTrustedDownload(string url) =>
-            url.StartsWith(SiteDownloadPrefix, StringComparison.OrdinalIgnoreCase)
+            Array.Exists(SiteDownloadPrefixes, p => url.StartsWith(p, StringComparison.OrdinalIgnoreCase))
             || url.StartsWith(GitHubDownloadPrefix, StringComparison.OrdinalIgnoreCase)
             || (FeedOverride != null && new Uri(url).IsFile);
 

@@ -3,7 +3,7 @@
 #   git push origin v0.2.0
 # Compila l'eseguibile autonomo (x64 e ARM64), crea l'installer con Inno Setup, esegue i controlli
 # automatici (senza la parte video, che richiede uno schermo), carica i file su Cloudflare R2,
-# pubblica la release su GitHub e aggiorna il sito https://screenlove.pages.dev.
+# pubblica la release su GitHub e aggiorna il sito https://screenlove.it.
 # L'app installata trova la nuova versione da sola e propone l'aggiornamento.
 name: Release
 

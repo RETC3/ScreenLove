@@ -106,7 +106,7 @@ amministratore, in `%LOCALAPPDATA%\Programs\ScreenLove`:
 ### Aggiornamenti
 
 All'avvio (al massimo una volta al giorno, disattivabile nelle Impostazioni) ScreenLove legge l'ultima
-versione dal sito (`https://screenlove.pages.dev/latest.json`, con GitHub come riserva). Se è più recente mostra una notifica; da lì, dal menu dell'icona ("Cerca aggiornamenti…")
+versione dal sito (`https://screenlove.it/latest.json`, con screenlove.pages.dev e GitHub come riserve). Se è più recente mostra una notifica; da lì, dal menu dell'icona ("Cerca aggiornamenti…")
 o dalle Impostazioni ("Cerca ora") si aprono le novità con il pulsante **Aggiorna ora**. Il pulsante:
 1. scarica l'installer e ne controlla dimensione e impronta SHA-256;
 2. chiude ScreenLove;
@@ -120,7 +120,7 @@ La versione portatile (exe senza installer) apre invece la pagina della release.
 
 ### Sito e download
 
-Il sito **https://screenlove.pages.dev** (Cloudflare Pages, cartella `web/`) presenta l'app e la fa scaricare
+Il sito **https://screenlove.it** (Cloudflare Pages, cartella `web/`; anche `screenlove.pages.dev`, che rimanda lì) presenta l'app e la fa scaricare
 da `/download/latest`; i file stanno su Cloudflare R2. Configurazione e dettagli: [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
 ### Pubblicare una release
@@ -139,7 +139,7 @@ Il workflow `.github/workflows/release.yml` fa tutto da solo:
 - crea installer e zip;
 - carica installer e zip su Cloudflare R2;
 - pubblica la release "ScreenLove 0.2.0" (novità = messaggio del tag, altrimenti note automatiche);
-- aggiorna il sito https://screenlove.pages.dev (pagina e `latest.json`).
+- aggiorna il sito https://screenlove.it (pagina e `latest.json`).
 
 Le copie installate la trovano al controllo successivo. Dalla scheda Actions si può anche solo compilare
 (senza pubblicare) con "Run workflow".

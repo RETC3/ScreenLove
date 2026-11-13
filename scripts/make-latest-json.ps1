@@ -1,11 +1,11 @@
 # Crea web/public/latest.json dall'ultima release pubblicata su GitHub.
 # Stesso formato dell'API di GitHub (/releases/latest), con due differenze:
-#   - i link di download puntano al sito (https://screenlove.pages.dev/download/<file>)
+#   - i link di download puntano al sito (https://screenlove.it/download/<file>)
 #   - ogni file ha la sua impronta "sha256" (letta da SHA256SUMS.txt della release)
 # L'app legge questo file per gli aggiornamenti; la pagina del sito per versione, dimensioni e novità.
 param(
     [string]$Repo = 'RETC3/ScreenLove',
-    [string]$Site = 'https://screenlove.pages.dev',
+    [string]$Site = 'https://screenlove.it',
     # Join-Path: il workflow del sito gira su Linux, dove "\" non separa le cartelle
     [string]$Out = (Join-Path (Join-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'web') 'public') 'latest.json'),
     [string]$Tag  # facoltativo: una release precisa invece dell'ultima
