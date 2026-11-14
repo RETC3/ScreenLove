@@ -23,6 +23,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Memoria: le istantanee dello schermo sono oggetti grandi. ConserveMemory fa compattare la loro
+         area quando è frammentata, invece di farla crescere (vedi anche Services/MemoryRelief.cs). -->
+    <RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="5" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Lettura di codici QR e a barre (Apache 2.0) -->
     <PackageReference Include="ZXing.Net" Version="0.16.9" />
     <!-- Cattura audio WASAPI (sistema in loopback + microfono), MIT -->

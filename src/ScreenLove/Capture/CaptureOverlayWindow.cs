@@ -4,7 +4,9 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using ScreenLove.Native;
 using ScreenLove.Services;
 
@@ -32,6 +34,10 @@ namespace ScreenLove.Capture
         private Int32Rect _hover = Int32Rect.Empty;
         private Int32Rect _selection = Int32Rect.Empty;
         private readonly Surface _surface;
+
+        private const int ZoomPixels = 15; // pixel visualizzati per lato nella lente
+        private readonly WriteableBitmap _zoom = new(ZoomPixels, ZoomPixels, 96, 96, PixelFormats.Bgra32, null);
+        private readonly byte[] _zoomPixels = new byte[ZoomPixels * ZoomPixels * 4];
 
         /// <summary>
         /// Elemento figlio che disegna l'overlay (disegnare in Window.OnRender non basta:
@@ -69,8 +75,12 @@ namespace ScreenLove.Capture
             Title = "ScreenLove — cattura";
             Focusable = true;
 
+            // L'istantanea è un'immagine fissa, disegnata una volta sola; a ogni movimento del mouse si
+            // ridisegnano solo selezione, mirino e lente (prima si ridisegnava tutto lo schermo).
             _surface = new Surface(this);
-            Content = _surface;
+            var background = new Image { Source = shot.Image, Stretch = Stretch.Fill };
+            RenderOptions.SetBitmapScalingMode(background, BitmapScalingMode.NearestNeighbor);
+            Content = new Grid { Children = { background, _surface } };
             RenderOptions.SetBitmapScalingMode(_surface, BitmapScalingMode.NearestNeighbor);
             SourceInitialized += OnSourceInitialized;
             Loaded += (_, _) =>
@@ -236,7 +246,6 @@ namespace ScreenLove.Capture
         private void RenderOverlay(DrawingContext dc)
         {
             var full = new Rect(0, 0, ActualWidth, ActualHeight);
-            dc.DrawImage(_shot.Image, full);
 
             var active = _dragging ? _selection : _hover;
             Geometry dim = new RectangleGeometry(full);
@@ -270,7 +279,7 @@ namespace ScreenLove.Capture
         private void DrawMagnifier(DrawingContext dc, Point m)
         {
             const double size = 132;
-            const int pixels = 15; // pixel visualizzati per lato
+            const int pixels = ZoomPixels;
             double cell = size / pixels;
 
             double x = m.X + 24, y = m.Y + 24;
@@ -278,14 +287,28 @@ namespace ScreenLove.Capture
             if (y + size + 46 > ActualHeight) y = m.Y - 24 - size - 46;
             var box = new Rect(x, y, size, size);
 
-            var brush = new ImageBrush(_shot.Image)
+            // Lente: copia i 15 × 15 pixel attorno al mouse in una piccola immagine riutilizzata
+            // (un ImageBrush sull'istantanea intera costava molta memoria e GPU a ogni movimento).
+            int left = (int)_mouse.X - pixels / 2, top = (int)_mouse.Y - pixels / 2;
+            for (int row = 0; row < pixels; row++)
             {
-                ViewboxUnits = BrushMappingMode.Absolute,
-                Viewbox = new Rect(_mouse.X - pixels / 2, _mouse.Y - pixels / 2, pixels, pixels),
-                Stretch = Stretch.Fill,
-            };
+                int sy = top + row;
+                for (int col = 0; col < pixels; col++)
+                {
+                    int sx = left + col, d = (row * pixels + col) * 4;
+                    if (sx < 0 || sy < 0 || sx >= _shot.Width || sy >= _shot.Height)
+                    {
+                        _zoomPixels[d] = _zoomPixels[d + 1] = _zoomPixels[d + 2] = 0;
+                        _zoomPixels[d + 3] = 255;
+                    }
+                    else
+                        Buffer.BlockCopy(_shot.Pixels, sy * _shot.Stride + sx * 4, _zoomPixels, d, 4);
+                }
+            }
+            _zoom.WritePixels(new Int32Rect(0, 0, pixels, pixels), _zoomPixels, pixels * 4, 0);
             dc.DrawRectangle(Brushes.Black, null, box);
-            dc.DrawRectangle(brush, new Pen(Brushes.White, 2), box);
+            dc.DrawImage(_zoom, box);
+            dc.DrawRectangle(null, new Pen(Brushes.White, 2), box);
 
             var center = new Rect(x + (pixels / 2) * cell, y + (pixels / 2) * cell, cell, cell);
             dc.DrawRectangle(null, new Pen(new SolidColorBrush(Accent), 1.5), center);

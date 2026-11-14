@@ -128,6 +128,7 @@ namespace ScreenLove.Capture
                 catch { /* appunti bloccati da un'altra app: la cattura è comunque salvata */ }
             }
             Captured?.Invoke(path);
+            MemoryRelief.Schedule();
         }
     }
 }

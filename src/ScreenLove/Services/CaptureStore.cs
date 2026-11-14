@@ -63,7 +63,10 @@ namespace ScreenLove.Services
                     bi.BeginInit();
                     bi.CacheOption = BitmapCacheOption.OnLoad; // non tiene bloccato il file
                     bi.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
-                    bi.DecodePixelWidth = Math.Min(360, width);
+                    // Al massimo 360 × 480: una cattura a scorrimento alta 40.000 px, decodificata solo in
+                    // larghezza, darebbe una miniatura di decine di MB.
+                    double scale = Math.Min(1.0, Math.Min(360.0 / width, 480.0 / height));
+                    bi.DecodePixelWidth = Math.Max(1, (int)Math.Round(width * scale));
                     bi.UriSource = new Uri(path);
                     bi.EndInit();
                     bi.Freeze();

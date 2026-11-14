@@ -72,6 +72,10 @@ namespace ScreenLove
             SetupHotkeys();
             SetupTray();
 
+            // Quando si chiude una finestra (overlay, editor, workspace...) la memoria delle immagini torna libera.
+            EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.UnloadedEvent,
+                new RoutedEventHandler((_, _) => MemoryRelief.Schedule()));
+
             if (!e.Args.Contains("--tray"))
                 ShowWorkspace();
             else

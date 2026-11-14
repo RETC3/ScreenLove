@@ -42,6 +42,7 @@ namespace ScreenLove.Checks
             var sample = SampleImage(900, 520);
             Section("Effetti immagine", () => CheckEffects(sample));
             Section("Generatore di documenti", CheckDocuments);
+            Section("Memoria dopo le catture", () => RunOnDispatcher(CheckMemoryAsync));
             bool skipVideo = args.Contains("--no-video");
             if (!skipVideo)
                 Section("Video: registrazione, taglio, unione", () => RunOnDispatcher(CheckVideoAsync));
@@ -115,6 +116,57 @@ namespace ScreenLove.Checks
         }
 
         // ------------------------------------------------------------------ controlli
+
+        /// <summary>
+        /// Cinque catture come quelle vere (schermo intero, overlay aperto e chiuso, ritaglio, salvataggio):
+        /// la memoria occupata deve tornare vicina a quella di partenza.
+        /// </summary>
+        private static async Task CheckMemoryAsync()
+        {
+            static (long priv, long ws) Mem()
+            {
+                using var p = System.Diagnostics.Process.GetCurrentProcess();
+                return (p.PrivateMemorySize64 / (1024 * 1024), p.WorkingSet64 / (1024 * 1024));
+            }
+            static string Show((long priv, long ws) m) => $"{m.priv} MB privati, {m.ws} MB in uso";
+
+            string folder = Path.Combine(_dir, "memoria");
+            if (Directory.Exists(folder)) Directory.Delete(folder, true);
+            var store = new CaptureStore(folder);
+
+            GC.Collect(); GC.WaitForPendingFinalizers(); GC.Collect();
+            await Task.Delay(300);
+            var start = Mem();
+            int screenMb = 0;
+
+            for (int i = 0; i < 5; i++)
+            {
+                var shot = ScreenCapture.CaptureVirtualScreen(includeCursor: false);
+                screenMb = shot.Width * shot.Height * 4 / (1024 * 1024);
+                var overlay = new ScreenLove.Capture.CaptureOverlayWindow(shot,
+                    WindowFinder.GetWindowRects(shot.Bounds), WindowFinder.GetMonitorRects(shot.Bounds));
+                overlay.Show();
+                await Task.Delay(350);
+                overlay.Close();
+                var crop = shot.Crop(new Int32Rect(0, 0, Math.Min(800, shot.Width), Math.Min(600, shot.Height)));
+                store.SaveNew(crop);
+                await Task.Delay(150);
+            }
+            await Task.Delay(500);
+            var busy = Mem();
+
+            MemoryRelief.Now();
+            await Task.Delay(500);
+            var after = Mem();
+
+            Console.WriteLine($"          schermo: {screenMb} MB per istantanea");
+            Console.WriteLine($"          prima:  {Show(start)}");
+            Console.WriteLine($"          subito dopo 5 catture: {Show(busy)}");
+            Console.WriteLine($"          dopo il riordino:      {Show(after)}");
+            Check(after.priv - start.priv < Math.Max(60, screenMb * 2),
+                $"dopo 5 catture la memoria privata torna vicina all'inizio (+{after.priv - start.priv} MB)");
+            Check(store.Items.Count == 5 && store.Items.All(it => File.Exists(it.Path)), "le 5 catture sono salvate");
+        }
 
         private static void CheckHotkeys()
         {

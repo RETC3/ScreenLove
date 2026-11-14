@@ -38,9 +38,17 @@ namespace ScreenLove.Services
             return Color.FromRgb(Pixels[i + 2], Pixels[i + 1], Pixels[i]);
         }
 
+        /// <summary>
+        /// Ritaglio come immagine indipendente: un CroppedBitmap terrebbe in vita l'intera istantanea
+        /// (tutti i monitor, decine di MB) finché qualcuno usa il ritaglio.
+        /// </summary>
         public BitmapSource Crop(Int32Rect r)
         {
-            var cropped = new CroppedBitmap(Image, r);
+            int stride = r.Width * 4;
+            var px = new byte[stride * r.Height];
+            for (int y = 0; y < r.Height; y++)
+                Buffer.BlockCopy(Pixels, (r.Y + y) * Stride + r.X * 4, px, y * stride, stride);
+            var cropped = BitmapSource.Create(r.Width, r.Height, 96, 96, PixelFormats.Bgra32, null, px, stride);
             cropped.Freeze();
             return cropped;
         }
