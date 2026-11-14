@@ -11,6 +11,16 @@
 
 export const versioni = [
   {
+    versione: '0.3.0',
+    data: '2026-11-14',
+    titolo: 'Più leggero',
+    voci: [
+      ['corretto', "Memoria: dopo catture e finestre chiuse ScreenLove restituisce la RAM a Windows. Prima poteva restare a centinaia di MB, o superare 1 GB, anche ferma nell'area di notifica."],
+      ['migliorato', 'Selezione della zona più fluida e leggera sulla scheda grafica, anche con più monitor ad alta risoluzione.'],
+      ['migliorato', 'Miniature dello storico più leggere, soprattutto per le catture a scorrimento molto lunghe.'],
+    ],
+  },
+  {
     versione: '0.2.0',
     data: '2026-11-13',
     titolo: 'Un sito tutto nuovo',
