@@ -185,7 +185,7 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 
 ## Prossimi passi (roadmap)
 
-1. Avvio dall'exe con l'app già attiva: la seconda istanza chiede alla prima di aprire lo storico invece di chiudersi in silenzio
+1. ~~Avvio dall'exe con l'app già attiva~~ (fatto, esce con la prossima versione)
 2. Schermo intero con più monitor: scelta tra tutti i monitor o uno solo
 3. Editor: ritaglio con cornice e maniglie (angoli e lati); annotazioni selezionabili, spostabili e ridimensionabili;
    più spotlight insieme con un'unica maschera scura (oggi ogni spotlight scurisce di nuovo l'immagine)

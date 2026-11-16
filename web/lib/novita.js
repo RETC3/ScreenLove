@@ -48,7 +48,7 @@ export const versioni = [
 
 export const inArrivo = [
   { stato: 'programma', titolo: 'Niente più avviso di Windows', testo: "Installer con firma digitale: al primo avvio SmartScreen non mostrerà più \"App non riconosciuta\"." },
-  { stato: 'programma', titolo: 'Si apre anche quando è già attivo', testo: "Doppio clic sull'icona del desktop con ScreenLove già nell'area di notifica: si apre la finestra delle catture invece di non succedere nulla." },
+  { stato: 'sviluppo', titolo: 'Si apre anche quando è già attivo', testo: "Doppio clic sull'icona del desktop con ScreenLove già nell'area di notifica: si apre la finestra delle catture invece di non succedere nulla." },
   { stato: 'programma', titolo: 'Scegli lo schermo', testo: 'Con più monitor, la cattura dello schermo intero chiede se prenderli tutti o solo uno.' },
   { stato: 'programma', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
   { stato: 'programma', titolo: 'Annotazioni modificabili', testo: 'Frecce, forme, sfocature e le altre annotazioni si spostano e si ridimensionano con le maniglie, senza cancellarle e rifarle.' },

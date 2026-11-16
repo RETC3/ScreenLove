@@ -18,7 +18,7 @@ namespace ScreenLove
     {
         private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
-        private Mutex? _mutex;
+        private SingleInstance? _instance;
         private WF.NotifyIcon? _tray;
         private HotkeyManager? _hotkeys;
         private WorkspaceWindow? _workspace;
@@ -35,10 +35,13 @@ namespace ScreenLove
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            _mutex = new Mutex(true, "ScreenLove.SingleInstance", out bool created);
-            if (!created)
+            _instance = SingleInstance.TryAcquire();
+            if (_instance == null)
             {
-                MessageBox.Show("ScreenLove è già in esecuzione: trovi l'icona nell'area di notifica.", "ScreenLove");
+                // ScreenLove è già attivo: aprendo l'exe (es. dall'icona sul desktop) si apre il suo workspace.
+                // Con --tray (avvio con Windows) non serve mostrare nulla.
+                if (!e.Args.Contains("--tray") && !SingleInstance.RequestShow())
+                    MessageBox.Show("ScreenLove è già in esecuzione: trovi l'icona nell'area di notifica.", "ScreenLove");
                 Shutdown();
                 return;
             }
@@ -71,6 +74,7 @@ namespace ScreenLove
 
             SetupHotkeys();
             SetupTray();
+            _instance.ListenForShowRequests(() => Dispatcher.BeginInvoke(() => ShowWorkspace()));
 
             // Quando si chiude una finestra (overlay, editor, workspace...) la memoria delle immagini torna libera.
             EventManager.RegisterClassHandler(typeof(Window), FrameworkElement.UnloadedEvent,
@@ -395,7 +399,7 @@ namespace ScreenLove
 
         protected override void OnExit(ExitEventArgs e)
         {
-            _mutex?.Dispose();
+            _instance?.Dispose();
             base.OnExit(e);
         }
     }
