@@ -48,6 +48,13 @@ export const versioni = [
 
 export const inArrivo = [
   { stato: 'programma', titolo: 'Niente più avviso di Windows', testo: "Installer con firma digitale: al primo avvio SmartScreen non mostrerà più \"App non riconosciuta\"." },
+  { stato: 'programma', titolo: 'Si apre anche quando è già attivo', testo: "Doppio clic sull'icona del desktop con ScreenLove già nell'area di notifica: si apre la finestra delle catture invece di non succedere nulla." },
+  { stato: 'programma', titolo: 'Scegli lo schermo', testo: 'Con più monitor, la cattura dello schermo intero chiede se prenderli tutti o solo uno.' },
+  { stato: 'programma', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
+  { stato: 'programma', titolo: 'Annotazioni modificabili', testo: 'Frecce, forme, sfocature e le altre annotazioni si spostano e si ridimensionano con le maniglie, senza cancellarle e rifarle.' },
+  { stato: 'programma', titolo: 'Più spotlight insieme', testo: "Si possono evidenziare più zone nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight." },
+  { stato: 'programma', titolo: 'Scegli microfono, audio e webcam', testo: 'Nelle impostazioni si sceglie quale microfono, quale uscita audio e quale webcam usare. Di base restano quelli predefiniti di Windows.' },
+  { stato: 'programma', titolo: 'Statistiche: decidi tu dal primo avvio', testo: "Al primo avvio ScreenLove chiede se inviare le statistiche anonime d'uso, prima di inviare qualsiasi cosa." },
   { stato: 'programma', titolo: 'Video più leggeri', testo: 'Registrazione con la cattura moderna di Windows: meno lavoro per il processore. Nel taglio, velocità e audio muto.' },
   { stato: 'programma', titolo: 'Scorrimento ancora più pulito', testo: 'Cattura a scorrimento senza la barra laterale e anche in orizzontale.' },
   { stato: 'programma', titolo: 'OCR più preciso', testo: "Meno simboli letti per sbaglio e lettura del testo direttamente da una selezione nell'editor." },
