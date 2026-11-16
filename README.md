@@ -190,9 +190,8 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 3. Editor: ritaglio con cornice e maniglie (angoli e lati); annotazioni selezionabili, spostabili e ridimensionabili;
    più spotlight insieme con un'unica maschera scura (oggi ogni spotlight scurisce di nuovo l'immagine)
 4. Impostazioni: scelta del microfono, dell'uscita audio registrata e della webcam (predefinito: quelli di Windows)
-5. Statistiche anonime: scelta esplicita al primo avvio, prima di qualsiasi invio
-6. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
-7. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
-8. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
-9. Condivisione (link, cloud, email), più lingue
-10. Firma del codice (niente avviso SmartScreen al primo avvio)
+5. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
+6. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
+7. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
+8. Condivisione (link, cloud, email), più lingue
+9. Firma del codice (niente avviso SmartScreen al primo avvio)
