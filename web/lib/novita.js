@@ -53,7 +53,7 @@ export const inArrivo = [
   { stato: 'sviluppo', titolo: 'Scegli lo schermo', testo: 'Con più monitor, la cattura dello schermo intero chiede se prenderli tutti o solo uno: un clic sullo schermo che vuoi, oppure su **Tutti gli schermi**.' },
   { stato: 'sviluppo', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
   { stato: 'sviluppo', titolo: 'Annotazioni modificabili', testo: 'Frecce, forme, sfocature e le altre annotazioni si spostano e si ridimensionano con le maniglie, senza cancellarle e rifarle.' },
-  { stato: 'programma', titolo: 'Più spotlight insieme', testo: "Si possono evidenziare più zone nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight." },
+  { stato: 'sviluppo', titolo: 'Più spotlight insieme', testo: "Si possono evidenziare più zone nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight." },
   { stato: 'programma', titolo: 'Scegli microfono, audio e webcam', testo: 'Nelle impostazioni si sceglie quale microfono, quale uscita audio e quale webcam usare. Di base restano quelli predefiniti di Windows.' },
   { stato: 'programma', titolo: 'Video più leggeri', testo: 'Registrazione con la cattura moderna di Windows: meno lavoro per il processore. Nel taglio, velocità e audio muto.' },
   { stato: 'programma', titolo: 'Scorrimento ancora più pulito', testo: 'Cattura a scorrimento senza la barra laterale e anche in orizzontale.' },
