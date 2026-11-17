@@ -28,6 +28,8 @@ namespace ScreenLove.Capture
         private readonly List<Int32Rect> _windows;
         private readonly List<Int32Rect> _monitors;
         private readonly bool _chooseMonitor;
+        private readonly List<Rect> _allButtons = new(); // pulsanti "Tutti gli schermi" (DIP), uno per schermo
+        private bool _overAll;                            // mouse sopra uno di quei pulsanti
 
         private Point _mouse;          // pixel fisici, relativi al desktop virtuale
         private bool _hasMouse;
@@ -72,7 +74,7 @@ namespace ScreenLove.Capture
             }
             _monitors.Sort((a, b) => a.X != b.X ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
             _hint = hint ?? (chooseMonitor
-                ? $"SCHERMO INTERO — Clic: questo schermo · 1-{_monitors.Count}: schermo numero · T: tutti gli schermi · Esc: annulla"
+                ? $"SCHERMO INTERO — Clic su uno schermo per catturarlo · Tutti gli schermi: pulsante o T · Esc: annulla"
                 : "Clic: finestra · Trascina: area · F: schermo intero · Ctrl+C: copia colore · Esc: annulla");
 
             WindowStyle = WindowStyle.None;
@@ -167,6 +169,11 @@ namespace ScreenLove.Capture
         {
             _mouse = ToPixels(e.GetPosition(this));
             _hasMouse = true;
+            if (_chooseMonitor)
+            {
+                var pos = e.GetPosition(this);
+                _overAll = _allButtons.Exists(b => b.Contains(pos));
+            }
             if (_down && !_dragging && !_chooseMonitor && (Math.Abs(_mouse.X - _downPoint.X) > 3 || Math.Abs(_mouse.Y - _downPoint.Y) > 3))
                 _dragging = true;
 
@@ -190,7 +197,7 @@ namespace ScreenLove.Capture
             if (!_down) return;
             _down = false;
             ReleaseMouseCapture();
-            var r = _dragging ? _selection : _hover;
+            var r = _overAll ? new Int32Rect(0, 0, _shot.Width, _shot.Height) : _dragging ? _selection : _hover;
             _dragging = false;
             if (r.Width >= 2 && r.Height >= 2)
                 Complete(r);
@@ -274,7 +281,7 @@ namespace ScreenLove.Capture
         {
             var full = new Rect(0, 0, ActualWidth, ActualHeight);
 
-            var active = _dragging ? _selection : _hover;
+            var active = _overAll ? new Int32Rect(0, 0, _shot.Width, _shot.Height) : _dragging ? _selection : _hover;
             Geometry dim = new RectangleGeometry(full);
             if (!active.IsEmpty)
                 dim = new CombinedGeometry(GeometryCombineMode.Exclude, dim, new RectangleGeometry(ToDip(active)));
@@ -311,11 +318,13 @@ namespace ScreenLove.Capture
         private void RenderMonitorChoice(DrawingContext dc, Int32Rect active)
         {
             var accent = new SolidColorBrush(Accent);
+            var dark = new SolidColorBrush(Color.FromArgb(230, 30, 31, 36));
+            _allButtons.Clear();
             for (int i = 0; i < _monitors.Count; i++)
             {
                 var m = _monitors[i];
                 var r = ToDip(m);
-                bool on = m.Equals(active);
+                bool on = !_overAll && m.Equals(active);
                 if (on)
                     dc.DrawRectangle(null, new Pen(accent, 4), new Rect(r.X + 2, r.Y + 2, Math.Max(0, r.Width - 4), Math.Max(0, r.Height - 4)));
 
@@ -326,7 +335,17 @@ namespace ScreenLove.Capture
                 dc.DrawRoundedRectangle(on ? accent : new SolidColorBrush(Color.FromArgb(220, 30, 31, 36)), null, box, 14, 14);
                 dc.DrawText(number, new Point(box.X + (w - number.Width) / 2, box.Y + 8));
                 dc.DrawText(detail, new Point(box.X + (w - detail.Width) / 2, box.Y + 12 + number.Height));
+
+                // Sotto ogni numero, il pulsante per catturare tutti gli schermi insieme.
+                var label = MakeText("Tutti gli schermi", 16);
+                double bw = Math.Max(w, label.Width + 40), bh = label.Height + 20;
+                var button = new Rect(r.X + (r.Width - bw) / 2, box.Bottom + 14, bw, bh);
+                _allButtons.Add(button);
+                dc.DrawRoundedRectangle(_overAll ? accent : dark, new Pen(_overAll ? Brushes.White : accent, 2), button, bh / 2, bh / 2);
+                dc.DrawText(label, new Point(button.X + (bw - label.Width) / 2, button.Y + 10));
             }
+            if (_overAll)
+                dc.DrawRectangle(null, new Pen(accent, 4), new Rect(2, 2, Math.Max(0, ActualWidth - 4), Math.Max(0, ActualHeight - 4)));
         }
 
         private void DrawMagnifier(DrawingContext dc, Point m)
