@@ -166,12 +166,18 @@ namespace ScreenLove.Editor
     {
         public override int Layer => 1;
 
-        public override void Render(DrawingContext dc, EditorDocument doc)
+        public override void Render(DrawingContext dc, EditorDocument doc) => RenderGroup(dc, doc, new[] { this });
+
+        /// <summary>Un'unica ombra su tutta l'immagine, con un buco per ogni spotlight.</summary>
+        public static void RenderGroup(DrawingContext dc, EditorDocument doc, System.Collections.Generic.IReadOnlyCollection<SpotlightAnnotation> spotlights)
         {
-            var full = new RectangleGeometry(new Rect(0, 0, doc.Width, doc.Height));
-            var hole = new RectangleGeometry(Rect, 6, 6);
-            var geo = new CombinedGeometry(GeometryCombineMode.Exclude, full, hole);
-            dc.DrawGeometry(MakeBrush(Color.FromArgb(0x99, 0, 0, 0)), null, geo);
+            if (spotlights.Count == 0) return;
+            Geometry geo = new RectangleGeometry(new Rect(0, 0, doc.Width, doc.Height));
+            foreach (var s in spotlights)
+                geo = new CombinedGeometry(GeometryCombineMode.Exclude, geo, new RectangleGeometry(s.Rect, 6, 6));
+            var brush = new SolidColorBrush(Color.FromArgb(0x99, 0, 0, 0));
+            brush.Freeze();
+            dc.DrawGeometry(brush, null, geo);
         }
 
         public override bool HitTest(Point p) => Rect.Contains(p);

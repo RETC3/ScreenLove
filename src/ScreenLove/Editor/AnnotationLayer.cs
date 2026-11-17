@@ -263,8 +263,7 @@ namespace ScreenLove.Editor
             dc.DrawRectangle(Brushes.Transparent, null, full); // rende cliccabile tutta la superficie
 
             dc.PushClip(new RectangleGeometry(full));
-            _doc.RenderAnnotations(dc);
-            _creating?.Render(dc, _doc);
+            _doc.RenderAnnotations(dc, _creating);
             dc.Pop();
 
             if (Selected != null && _doc.Items.Contains(Selected) && _cropRect == null && Selected.Handles is { Length: > 0 } handles)

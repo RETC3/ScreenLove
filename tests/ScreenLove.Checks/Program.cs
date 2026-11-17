@@ -118,6 +118,22 @@ namespace ScreenLove.Checks
             Check(Math.Abs(arrow.Start.Y - 80) < 0.001, $"freccia con Maiusc: direzione a 45° ({arrow.Start})");
 
             Check(new TextAnnotation { Text = "x" }.Handles.Length == 0, "testo: nessuna maniglia (si sposta soltanto)");
+
+            // Più spotlight: un'unica ombra, non una per spotlight.
+            var white = BitmapSource.Create(120, 40, 96, 96, PixelFormats.Bgra32, null,
+                Enumerable.Repeat((byte)255, 120 * 40 * 4).ToArray(), 120 * 4);
+            var one = new EditorDocument(white);
+            one.Items.Add(new SpotlightAnnotation { Rect = new Rect(5, 5, 20, 20) });
+            var three = new EditorDocument(white);
+            three.Items.Add(new SpotlightAnnotation { Rect = new Rect(5, 5, 20, 20) });
+            three.Items.Add(new SpotlightAnnotation { Rect = new Rect(40, 5, 20, 20) });
+            three.Items.Add(new SpotlightAnnotation { Rect = new Rect(75, 5, 20, 20) });
+            var outOne = Pixel(one.Flatten(), 110, 35);
+            var outThree = Pixel(three.Flatten(), 110, 35);
+            var hole = Pixel(three.Flatten(), 50, 15);
+            Check(outOne.r < 200 && outOne.r == outThree.r,
+                $"3 spotlight scuriscono il resto come uno solo (fuori: {outOne.r} con uno, {outThree.r} con tre)");
+            Check(hole.r == 255, $"dentro ogni spotlight l'immagine resta chiara ({hole.r})");
         }
 
         private static void Check(bool ok, string what)

@@ -101,10 +101,26 @@ namespace ScreenLove.Editor
             return bmp;
         }
 
-        public void RenderAnnotations(DrawingContext dc)
+        /// <summary>
+        /// Disegna le annotazioni (più <paramref name="extra"/>, quella che si sta disegnando). Gli spotlight
+        /// formano un'unica ombra con un "buco" per ciascuno: con più spotlight l'immagine non diventa più scura.
+        /// </summary>
+        public void RenderAnnotations(DrawingContext dc, Annotation? extra = null)
         {
-            foreach (var a in Items.OrderBy(a => a.Layer))
+            var all = extra != null ? Items.Append(extra) : Items;
+            var spotlights = all.OfType<SpotlightAnnotation>().ToList();
+            bool spotlightsDone = false;
+            foreach (var a in all.OrderBy(a => a.Layer))
+            {
+                if (a is SpotlightAnnotation)
+                {
+                    if (!spotlightsDone)
+                        SpotlightAnnotation.RenderGroup(dc, this, spotlights);
+                    spotlightsDone = true;
+                    continue;
+                }
                 a.Render(dc, this);
+            }
         }
 
         /// <summary>Immagine finale: base + annotazioni, alla risoluzione originale.</summary>
