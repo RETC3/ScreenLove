@@ -64,6 +64,17 @@
             </StackPanel>
         </Border>
 
+        <!-- ritaglio: visibile mentre la cornice con le maniglie è attiva -->
+        <Border x:Name="CropBar" DockPanel.Dock="Top" Background="{StaticResource PanelBrush}" Padding="10,5"
+                BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Visibility="Collapsed">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" Foreground="{StaticResource MutedBrush}" Margin="0,0,16,0"
+                           Text="Trascina le maniglie sugli angoli e sui lati, o sposta la cornice. Fuori dalla cornice puoi disegnarne una nuova."/>
+                <Button Style="{StaticResource AccentButton}" Click="ApplyCrop_Click" ToolTip="Applica il ritaglio (Invio o doppio clic)" Content="✓  Applica ritaglio"/>
+                <Button Style="{StaticResource ToolButton}" Click="CancelCrop_Click" ToolTip="Annulla il ritaglio (Esc)" Content="Annulla" Margin="6,0,0,0"/>
+            </StackPanel>
+        </Border>
+
         <!-- barra di stato -->
         <Border DockPanel.Dock="Bottom" Background="{StaticResource PanelBrush}" Padding="10,3"
                 BorderBrush="{StaticResource LineBrush}" BorderThickness="0,1,0,0">

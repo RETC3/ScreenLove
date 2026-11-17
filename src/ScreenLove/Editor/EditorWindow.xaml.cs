@@ -64,6 +64,7 @@ namespace ScreenLove.Editor
             Layer.Changed += UpdateStatus;
             Layer.TextRequested += BeginText;
             Layer.CropRequested += ApplyCrop;
+            Layer.CropStateChanged += () => CropBar.Visibility = Layer.IsCropping ? Visibility.Visible : Visibility.Collapsed;
 
             BuildPalette();
             SelectTool(ToolKind.Arrow);
@@ -145,6 +146,8 @@ namespace ScreenLove.Editor
             Layer.Tool = Enum.Parse<ToolKind>((string)((FrameworkElement)sender).Tag);
             if (Layer.Tool != ToolKind.Select && Layer.Tool != ToolKind.Text)
                 Layer.Selected = null;
+            if (Layer.Tool == ToolKind.Crop)
+                Layer.BeginCrop(); // cornice con le maniglie su tutta l'immagine
             Layer.InvalidateVisual();
         }
 
@@ -286,10 +289,18 @@ namespace ScreenLove.Editor
 
         // ---------- ritaglio ----------
 
+        private void ApplyCrop_Click(object sender, RoutedEventArgs e) => Layer.ApplyCrop();
+
+        private void CancelCrop_Click(object sender, RoutedEventArgs e) => SelectTool(ToolKind.Select);
+
         private void ApplyCrop(Int32Rect r)
         {
             r = _doc.ClipToImage(r);
-            if (r.IsEmpty) return;
+            if (r.IsEmpty || (r.X == 0 && r.Y == 0 && r.Width == _doc.Width && r.Height == _doc.Height))
+            {
+                SelectTool(ToolKind.Select); // cornice sull'immagine intera: niente da ritagliare
+                return;
+            }
             PushUndo();
             var offset = new Vector(-r.X, -r.Y);
             _doc.SetBase(_doc.Crop(r));
@@ -521,6 +532,16 @@ namespace ScreenLove.Editor
             if (e.Key is Key.Delete or Key.Back)
             {
                 DeleteSelected();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Enter && Layer.IsCropping)
+            {
+                Layer.ApplyCrop();
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Escape && Layer.IsCropping)
+            {
+                SelectTool(ToolKind.Select); // annulla il ritaglio
                 e.Handled = true;
             }
             else if (e.Key == Key.Escape)
