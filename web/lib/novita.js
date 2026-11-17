@@ -51,7 +51,7 @@ export const inArrivo = [
   { stato: 'programma', titolo: 'Niente più avviso di Windows', testo: "Installer con firma digitale: al primo avvio SmartScreen non mostrerà più \"App non riconosciuta\"." },
   { stato: 'sviluppo', titolo: 'Si apre anche quando è già attivo', testo: "Doppio clic sull'icona del desktop con ScreenLove già nell'area di notifica: si apre la finestra delle catture invece di non succedere nulla." },
   { stato: 'sviluppo', titolo: 'Scegli lo schermo', testo: 'Con più monitor, la cattura dello schermo intero chiede se prenderli tutti o solo uno: un clic sullo schermo che vuoi, oppure su **Tutti gli schermi**.' },
-  { stato: 'programma', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
+  { stato: 'sviluppo', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
   { stato: 'programma', titolo: 'Annotazioni modificabili', testo: 'Frecce, forme, sfocature e le altre annotazioni si spostano e si ridimensionano con le maniglie, senza cancellarle e rifarle.' },
   { stato: 'programma', titolo: 'Più spotlight insieme', testo: "Si possono evidenziare più zone nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight." },
   { stato: 'programma', titolo: 'Scegli microfono, audio e webcam', testo: 'Nelle impostazioni si sceglie quale microfono, quale uscita audio e quale webcam usare. Di base restano quelli predefiniti di Windows.' },
