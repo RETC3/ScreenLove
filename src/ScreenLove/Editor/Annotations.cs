@@ -47,6 +47,15 @@ namespace ScreenLove.Editor
 
         public Annotation Clone() => (Annotation)MemberwiseClone();
 
+        /// <summary>Maniglie per ridimensionare l'elemento selezionato (coordinate immagine). Vuoto = nessuna.</summary>
+        public virtual Point[] Handles => Array.Empty<Point>();
+
+        /// <summary>
+        /// Trascina la maniglia <paramref name="index"/> fino a <paramref name="p"/>, partendo dalla forma
+        /// che l'elemento aveva a inizio trascinamento (<paramref name="original"/>).
+        /// </summary>
+        public virtual void DragHandle(int index, Point p, bool constrain, Annotation original) { }
+
         protected Brush MakeBrush(Color c)
         {
             var b = new SolidColorBrush(c);
@@ -80,6 +89,43 @@ namespace ScreenLove.Editor
         public override void Move(Vector delta) => Rect = Rect.Offset(Rect, delta);
 
         public override void Drag(Point start, Point current, bool constrain) => Rect = RectFrom(start, current, constrain);
+
+        /// <summary>Angoli e metà dei lati, in senso orario dall'angolo in alto a sinistra.</summary>
+        public override Point[] Handles
+        {
+            get
+            {
+                var r = Rect;
+                double cx = r.X + r.Width / 2, cy = r.Y + r.Height / 2;
+                return new[]
+                {
+                    r.TopLeft, new Point(cx, r.Top), r.TopRight, new Point(r.Right, cy),
+                    r.BottomRight, new Point(cx, r.Bottom), r.BottomLeft, new Point(r.Left, cy),
+                };
+            }
+        }
+
+        public override void DragHandle(int index, Point p, bool constrain, Annotation original)
+        {
+            var o = ((BoxAnnotation)original).Rect;
+            double l = o.Left, t = o.Top, r = o.Right, b = o.Bottom;
+            if (index is 0 or 6 or 7) l = p.X;
+            if (index is 2 or 3 or 4) r = p.X;
+            if (index is 0 or 1 or 2) t = p.Y;
+            if (index is 4 or 5 or 6) b = p.Y;
+
+            // Maiusc su un angolo: mantiene le proporzioni di partenza.
+            if (constrain && index is 0 or 2 or 4 or 6 && o.Width > 0 && o.Height > 0)
+            {
+                double ax = index is 0 or 6 ? o.Right : o.Left, ay = index is 0 or 2 ? o.Bottom : o.Top;
+                double scale = Math.Max(Math.Abs(p.X - ax) / o.Width, Math.Abs(p.Y - ay) / o.Height);
+                double nx = ax + Math.Sign(p.X - ax == 0 ? 1 : p.X - ax) * o.Width * scale;
+                double ny = ay + Math.Sign(p.Y - ay == 0 ? 1 : p.Y - ay) * o.Height * scale;
+                Rect = new Rect(new Point(ax, ay), new Point(nx, ny));
+                return;
+            }
+            Rect = new Rect(new Point(l, t), new Point(r, b)); // si può anche "ribaltare" oltre il lato opposto
+        }
     }
 
     public sealed class RectangleAnnotation : BoxAnnotation
@@ -179,14 +225,27 @@ namespace ScreenLove.Editor
         public override void Drag(Point start, Point current, bool constrain)
         {
             Start = start;
-            if (constrain)
-            {
-                // blocca a multipli di 45°
-                var v = current - start;
-                double angle = Math.Round(Math.Atan2(v.Y, v.X) / (Math.PI / 4)) * (Math.PI / 4);
-                current = start + new Vector(Math.Cos(angle), Math.Sin(angle)) * v.Length;
-            }
-            End = current;
+            End = constrain ? Snap45(start, current) : current;
+        }
+
+        /// <summary>Blocca la direzione da <paramref name="from"/> a multipli di 45°.</summary>
+        private static Point Snap45(Point from, Point to)
+        {
+            var v = to - from;
+            double angle = Math.Round(Math.Atan2(v.Y, v.X) / (Math.PI / 4)) * (Math.PI / 4);
+            return from + new Vector(Math.Cos(angle), Math.Sin(angle)) * v.Length;
+        }
+
+        /// <summary>Coda e punta della freccia.</summary>
+        public override Point[] Handles => new[] { Start, End };
+
+        public override void DragHandle(int index, Point p, bool constrain, Annotation original)
+        {
+            var o = (ArrowAnnotation)original;
+            if (index == 0)
+                Start = constrain ? Snap45(o.End, p) : p;
+            else
+                End = constrain ? Snap45(o.Start, p) : p;
         }
 
         public override void Render(DrawingContext dc, EditorDocument doc)

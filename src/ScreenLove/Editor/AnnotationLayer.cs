@@ -25,6 +25,40 @@ namespace ScreenLove.Editor
         private Rect _cropStart;
         private const double MinCrop = 8;
 
+        // Maniglie dell'elemento selezionato: indice della maniglia trascinata e forma di partenza.
+        private int _handle = -1;
+        private Annotation? _handleOriginal;
+
+        private int HandleHit(Point p)
+        {
+            if (Selected == null || _doc == null || !_doc.Items.Contains(Selected)) return -1;
+            var handles = Selected.Handles;
+            double tol = 8 / ViewScale();
+            for (int i = handles.Length - 1; i >= 0; i--) // la punta della freccia ha la precedenza sulla coda
+                if (Math.Abs(p.X - handles[i].X) <= tol && Math.Abs(p.Y - handles[i].Y) <= tol)
+                    return i;
+            return -1;
+        }
+
+        private Cursor HandleCursor(int index) => Selected is BoxAnnotation
+            ? index switch
+            {
+                0 or 4 => Cursors.SizeNWSE,
+                2 or 6 => Cursors.SizeNESW,
+                1 or 5 => Cursors.SizeNS,
+                _ => Cursors.SizeWE,
+            }
+            : Cursors.SizeAll;
+
+        private void RenderHandles(DrawingContext dc, Point[] handles)
+        {
+            double k = 1 / ViewScale(), size = 10 * k;
+            var fill = Brushes.White;
+            var pen = new Pen(new SolidColorBrush(Accent), 1.5 * k);
+            foreach (var h in handles)
+                dc.DrawRectangle(fill, pen, new Rect(h.X - size / 2, h.Y - size / 2, size, size));
+        }
+
         public AnnotationLayer()
         {
             Focusable = true;
@@ -233,7 +267,11 @@ namespace ScreenLove.Editor
             _creating?.Render(dc, _doc);
             dc.Pop();
 
-            if (Selected != null && _doc.Items.Contains(Selected))
+            if (Selected != null && _doc.Items.Contains(Selected) && _cropRect == null && Selected.Handles is { Length: > 0 } handles)
+            {
+                RenderHandles(dc, handles);
+            }
+            else if (Selected != null && _doc.Items.Contains(Selected))
             {
                 var b = Selected.Bounds;
                 b.Inflate(Selected.Thickness / 2 + 4, Selected.Thickness / 2 + 4);
@@ -266,6 +304,18 @@ namespace ScreenLove.Editor
             var p = e.GetPosition(this);
             _start = _last = p;
             _snapshotTaken = false;
+
+            // Maniglia dell'elemento selezionato: si ridimensiona, con qualunque strumento (tranne il ritaglio).
+            if (Tool != ToolKind.Crop && HandleHit(p) is >= 0 and var h)
+            {
+                _handle = h;
+                _handleOriginal = Selected!.Clone();
+                _down = true;
+                CaptureMouse();
+                InvalidateVisual();
+                e.Handled = true;
+                return;
+            }
 
             switch (Tool)
             {
@@ -337,6 +387,11 @@ namespace ScreenLove.Editor
 
             if (!_down)
             {
+                if (Tool != ToolKind.Crop && HandleHit(p) is >= 0 and var h)
+                {
+                    Cursor = HandleCursor(h);
+                    return;
+                }
                 Cursor = Tool switch
                 {
                     ToolKind.Crop => CropCursor(CropHit(p)),
@@ -347,7 +402,16 @@ namespace ScreenLove.Editor
                 return;
             }
 
-            if (_creating != null)
+            if (_handle >= 0 && Selected != null && _handleOriginal != null)
+            {
+                if (!_snapshotTaken && (p - _start).Length > 0)
+                {
+                    BeforeChange?.Invoke();
+                    _snapshotTaken = true;
+                }
+                Selected.DragHandle(_handle, p, shift, _handleOriginal);
+            }
+            else if (_creating != null)
             {
                 _creating.Drag(_start, p, shift);
             }
@@ -379,7 +443,22 @@ namespace ScreenLove.Editor
             _down = false;
             ReleaseMouseCapture();
 
-            if (_creating != null)
+            if (_handle >= 0)
+            {
+                // Forma troppo piccola dopo il ridimensionamento: torna com'era.
+                if (Selected != null && _handleOriginal != null && !Selected.IsValid && _doc != null)
+                {
+                    int i = _doc.Items.IndexOf(Selected);
+                    if (i >= 0)
+                    {
+                        _doc.Items[i] = _handleOriginal;
+                        Selected = _handleOriginal;
+                    }
+                }
+                _handle = -1;
+                _handleOriginal = null;
+            }
+            else if (_creating != null)
             {
                 if (_creating.IsValid && _doc != null)
                 {
@@ -408,6 +487,8 @@ namespace ScreenLove.Editor
         public void CancelInteraction()
         {
             _creating = null;
+            _handle = -1;
+            _handleOriginal = null;
             bool wasCropping = _cropRect != null;
             _cropRect = null;
             _cropDrag = CropDrag.None;

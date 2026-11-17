@@ -40,6 +40,7 @@ namespace ScreenLove.Checks
             if (args.Contains("--online"))
                 Section("Aggiornamenti: release vera su GitHub", () => RunOnDispatcher(CheckUpdaterOnlineAsync));
             var sample = SampleImage(900, 520);
+            Section("Editor: maniglie delle annotazioni", CheckHandles);
             Section("Effetti immagine", () => CheckEffects(sample));
             Section("Generatore di documenti", CheckDocuments);
             Section("Memoria dopo le catture", () => RunOnDispatcher(CheckMemoryAsync));
@@ -82,6 +83,41 @@ namespace ScreenLove.Checks
                 foreach (var line in (error.StackTrace ?? "").Split('\n').Where(l => l.Contains("ScreenLove")).Take(4))
                     Console.WriteLine("          " + line.Trim());
             }
+        }
+
+        private static void CheckHandles()
+        {
+            var box = new RectangleAnnotation { Rect = new Rect(10, 10, 100, 50) };
+            Check(box.Handles.Length == 8, "rettangolo: 8 maniglie (angoli e lati)");
+
+            var original = box.Clone();
+            box.DragHandle(4, new Point(150, 90), false, original); // angolo in basso a destra
+            Check(box.Rect == new Rect(10, 10, 140, 80), $"angolo: ridimensiona tenendo fermo l'angolo opposto ({box.Rect})");
+
+            box = new RectangleAnnotation { Rect = new Rect(10, 10, 100, 50) };
+            box.DragHandle(3, new Point(60, 999), false, box.Clone()); // lato destro
+            Check(box.Rect == new Rect(10, 10, 50, 50), $"lato: cambia solo la larghezza ({box.Rect})");
+
+            box = new RectangleAnnotation { Rect = new Rect(10, 10, 100, 50) };
+            box.DragHandle(3, new Point(0, 30), false, box.Clone()); // oltre il lato opposto
+            Check(box.Rect == new Rect(0, 10, 10, 50), $"lato oltre l'opposto: la forma si ribalta senza rompersi ({box.Rect})");
+
+            box = new RectangleAnnotation { Rect = new Rect(0, 0, 100, 50) };
+            box.DragHandle(4, new Point(300, 60), true, box.Clone()); // Maiusc: proporzioni
+            Check(Math.Abs(box.Rect.Width / box.Rect.Height - 2) < 0.001, $"Maiusc sull'angolo: proporzioni mantenute ({box.Rect})");
+
+            var blur = new BlurAnnotation { Rect = new Rect(0, 0, 40, 40) };
+            blur.DragHandle(4, new Point(80, 60), false, blur.Clone());
+            Check(blur.Rect == new Rect(0, 0, 80, 60), "sfocatura: si ridimensiona come il rettangolo");
+
+            var arrow = new ArrowAnnotation { Start = new Point(0, 0), End = new Point(100, 0) };
+            Check(arrow.Handles.Length == 2, "freccia: 2 maniglie (coda e punta)");
+            arrow.DragHandle(1, new Point(50, 80), false, arrow.Clone());
+            Check(arrow.Start == new Point(0, 0) && arrow.End == new Point(50, 80), "freccia: la punta si sposta, la coda resta");
+            arrow.DragHandle(0, new Point(10, 82), true, arrow.Clone());
+            Check(Math.Abs(arrow.Start.Y - 80) < 0.001, $"freccia con Maiusc: direzione a 45° ({arrow.Start})");
+
+            Check(new TextAnnotation { Text = "x" }.Handles.Length == 0, "testo: nessuna maniglia (si sposta soltanto)");
         }
 
         private static void Check(bool ok, string what)
