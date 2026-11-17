@@ -17,6 +17,8 @@ namespace ScreenLove.Capture
     /// Passando col mouse evidenzia la finestra sotto il cursore, trascinando seleziona un'area.
     /// Click = cattura finestra evidenziata, trascina = area, F = schermo intero,
     /// frecce = sposta di 1 px, Ctrl+C = copia il colore, Esc/clic destro = annulla.
+    /// Con <c>chooseMonitor</c> serve solo a scegliere lo schermo per la cattura a schermo intero:
+    /// clic = schermo sotto il mouse, 1-9 = schermo numero N, T/F = tutti gli schermi.
     /// </summary>
     public sealed class CaptureOverlayWindow : Window
     {
@@ -25,6 +27,7 @@ namespace ScreenLove.Capture
         private readonly ScreenShot _shot;
         private readonly List<Int32Rect> _windows;
         private readonly List<Int32Rect> _monitors;
+        private readonly bool _chooseMonitor;
 
         private Point _mouse;          // pixel fisici, relativi al desktop virtuale
         private bool _hasMouse;
@@ -54,19 +57,30 @@ namespace ScreenLove.Capture
 
         private readonly string _hint;
 
-        public CaptureOverlayWindow(ScreenShot shot, List<Int32Rect> windows, List<Int32Rect> monitors, string? hint = null)
+        public CaptureOverlayWindow(ScreenShot shot, List<Int32Rect> windows, List<Int32Rect> monitors, string? hint = null,
+            bool chooseMonitor = false)
         {
-            _hint = hint ?? "Clic: finestra · Trascina: area · F: schermo intero · Ctrl+C: copia colore · Esc: annulla";
+            _chooseMonitor = chooseMonitor;
             _shot = shot;
-            _windows = windows;
-            _monitors = monitors;
+            _windows = chooseMonitor ? new List<Int32Rect>() : windows;
+            // Schermi numerati da sinistra a destra (e dall'alto in basso), ritagliati sull'istantanea.
+            _monitors = new List<Int32Rect>();
+            foreach (var m in monitors)
+            {
+                var c = WindowFinder.Clip(m, shot.Width, shot.Height);
+                if (!c.IsEmpty) _monitors.Add(c);
+            }
+            _monitors.Sort((a, b) => a.X != b.X ? a.X.CompareTo(b.X) : a.Y.CompareTo(b.Y));
+            _hint = hint ?? (chooseMonitor
+                ? $"SCHERMO INTERO — Clic: questo schermo · 1-{_monitors.Count}: schermo numero · T: tutti gli schermi · Esc: annulla"
+                : "Clic: finestra · Trascina: area · F: schermo intero · Ctrl+C: copia colore · Esc: annulla");
 
             WindowStyle = WindowStyle.None;
             ResizeMode = ResizeMode.NoResize;
             ShowInTaskbar = false;
             Topmost = true;
             Background = Brushes.Black;
-            Cursor = Cursors.Cross;
+            Cursor = chooseMonitor ? Cursors.Hand : Cursors.Cross;
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = shot.Bounds.X;
             Top = shot.Bounds.Y;
@@ -138,8 +152,8 @@ namespace ScreenLove.Capture
                     return r;
             foreach (var m in _monitors)
                 if (WindowFinder.Contains(m, x, y))
-                    return WindowFinder.Clip(m, _shot.Width, _shot.Height);
-            return new Int32Rect(0, 0, _shot.Width, _shot.Height);
+                    return m;
+            return _chooseMonitor ? Int32Rect.Empty : new Int32Rect(0, 0, _shot.Width, _shot.Height);
         }
 
         private Int32Rect SelectionFrom(Point a, Point b)
@@ -153,7 +167,7 @@ namespace ScreenLove.Capture
         {
             _mouse = ToPixels(e.GetPosition(this));
             _hasMouse = true;
-            if (_down && !_dragging && (Math.Abs(_mouse.X - _downPoint.X) > 3 || Math.Abs(_mouse.Y - _downPoint.Y) > 3))
+            if (_down && !_dragging && !_chooseMonitor && (Math.Abs(_mouse.X - _downPoint.X) > 3 || Math.Abs(_mouse.Y - _downPoint.Y) > 3))
                 _dragging = true;
 
             if (_dragging)
@@ -210,9 +224,16 @@ namespace ScreenLove.Capture
                     Complete(_dragging ? _selection : _hover);
                     break;
                 case Key.F:
+                case Key.T when _chooseMonitor:
                     Complete(new Int32Rect(0, 0, _shot.Width, _shot.Height));
                     break;
-                case Key.C when (Keyboard.Modifiers & ModifierKeys.Control) != 0:
+                case >= Key.D1 and <= Key.D9 when _chooseMonitor:
+                    CompleteMonitor(e.Key - Key.D1);
+                    break;
+                case >= Key.NumPad1 and <= Key.NumPad9 when _chooseMonitor:
+                    CompleteMonitor(e.Key - Key.NumPad1);
+                    break;
+                case Key.C when !_chooseMonitor && (Keyboard.Modifiers & ModifierKeys.Control) != 0:
                     var c = _shot.GetPixel((int)_mouse.X, (int)_mouse.Y);
                     CopiedColor = $"#{c.R:X2}{c.G:X2}{c.B:X2}";
                     try { Clipboard.SetText(CopiedColor); } catch { /* appunti occupati */ }
@@ -234,6 +255,12 @@ namespace ScreenLove.Capture
             NativeMethods.SetCursorPos(p.X + dx, p.Y + dy);
         }
 
+        private void CompleteMonitor(int index)
+        {
+            if (index >= 0 && index < _monitors.Count)
+                Complete(_monitors[index]);
+        }
+
         private void Complete(Int32Rect r)
         {
             if (r.Width < 1 || r.Height < 1) return;
@@ -253,14 +280,18 @@ namespace ScreenLove.Capture
                 dim = new CombinedGeometry(GeometryCombineMode.Exclude, dim, new RectangleGeometry(ToDip(active)));
             dc.DrawGeometry(new SolidColorBrush(Color.FromArgb(110, 0, 0, 0)), null, dim);
 
-            if (!active.IsEmpty)
+            if (_chooseMonitor)
+            {
+                RenderMonitorChoice(dc, active);
+            }
+            else if (!active.IsEmpty)
             {
                 var r = ToDip(active);
                 dc.DrawRectangle(null, new Pen(new SolidColorBrush(Accent), 2), r);
                 DrawLabel(dc, $"{active.Width} × {active.Height}", new Point(r.X, r.Y), above: true);
             }
 
-            if (_hasMouse)
+            if (_hasMouse && !_chooseMonitor)
             {
                 var m = new Point((_mouse.X + 0.5) / ScaleX, (_mouse.Y + 0.5) / ScaleY);
                 if (!_dragging)
@@ -274,6 +305,28 @@ namespace ScreenLove.Capture
 
             var hintSize = MakeText(_hint, 12);
             DrawLabel(dc, _hint, new Point((ActualWidth - hintSize.Width) / 2 - 6, ActualHeight - hintSize.Height - 60), above: false);
+        }
+
+        /// <summary>Numero grande al centro di ogni schermo; quello sotto il mouse è evidenziato.</summary>
+        private void RenderMonitorChoice(DrawingContext dc, Int32Rect active)
+        {
+            var accent = new SolidColorBrush(Accent);
+            for (int i = 0; i < _monitors.Count; i++)
+            {
+                var m = _monitors[i];
+                var r = ToDip(m);
+                bool on = m.Equals(active);
+                if (on)
+                    dc.DrawRectangle(null, new Pen(accent, 4), new Rect(r.X + 2, r.Y + 2, Math.Max(0, r.Width - 4), Math.Max(0, r.Height - 4)));
+
+                var number = MakeText((i + 1).ToString(CultureInfo.InvariantCulture), 72);
+                var detail = MakeText($"Schermo {i + 1} · {m.Width} × {m.Height}", 15);
+                double w = Math.Max(number.Width, detail.Width) + 48, h = number.Height + detail.Height + 24;
+                var box = new Rect(r.X + (r.Width - w) / 2, r.Y + (r.Height - h) / 2, w, h);
+                dc.DrawRoundedRectangle(on ? accent : new SolidColorBrush(Color.FromArgb(220, 30, 31, 36)), null, box, 14, 14);
+                dc.DrawText(number, new Point(box.X + (w - number.Width) / 2, box.Y + 8));
+                dc.DrawText(detail, new Point(box.X + (w - detail.Width) / 2, box.Y + 12 + number.Height));
+            }
         }
 
         private void DrawMagnifier(DrawingContext dc, Point m)

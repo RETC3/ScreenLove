@@ -15,6 +15,9 @@ namespace ScreenLove
         public bool OpenEditorAfterCapture { get; set; } = false;
         public bool ShowWorkspaceAfterCapture { get; set; } = true;
         public bool IncludeCursor { get; set; } = false;
+
+        /// <summary>Schermo intero con più monitor: chiedi quale catturare (altrimenti tutti).</summary>
+        public bool FullScreenChooseMonitor { get; set; } = true;
         public int DelaySeconds { get; set; } = 3;
 
         // Registrazione video

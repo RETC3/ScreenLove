@@ -30,6 +30,7 @@ namespace ScreenLove.Options
             WorkspaceBox.IsChecked = _edit.ShowWorkspaceAfterCapture;
             EditorBox.IsChecked = _edit.OpenEditorAfterCapture;
             CursorBox.IsChecked = _edit.IncludeCursor;
+            ChooseMonitorBox.IsChecked = _edit.FullScreenChooseMonitor;
             DelayBox.ItemsSource = Enumerable.Range(1, 10).Select(s => $"{s} s").ToList();
             DelayBox.SelectedIndex = Math.Clamp(_edit.DelaySeconds, 1, 10) - 1;
             FpsBox.ItemsSource = new[] { 15, 24, 30, 60 };
@@ -180,6 +181,7 @@ namespace ScreenLove.Options
             _edit.ShowWorkspaceAfterCapture = WorkspaceBox.IsChecked == true;
             _edit.OpenEditorAfterCapture = EditorBox.IsChecked == true;
             _edit.IncludeCursor = CursorBox.IsChecked == true;
+            _edit.FullScreenChooseMonitor = ChooseMonitorBox.IsChecked == true;
             _edit.DelaySeconds = DelayBox.SelectedIndex + 1;
             _edit.RecordFps = (int)FpsBox.SelectedItem;
             _edit.RecordSystemAudio = SysAudioBox.IsChecked == true;

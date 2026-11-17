@@ -57,6 +57,7 @@
 
                 <TextBlock Style="{StaticResource Section}" Text="Cattura"/>
                 <CheckBox x:Name="CursorBox" Content="Includi il cursore nelle catture a schermo intero"/>
+                <CheckBox x:Name="ChooseMonitorBox" Content="Con più schermi, chiedi quale catturare a schermo intero (altrimenti tutti)"/>
                 <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                     <TextBlock Style="{StaticResource Label}" Text="Ritardo della cattura con ritardo:" Margin="0,0,10,0"/>
                     <ComboBox x:Name="DelayBox" Width="90"/>

@@ -111,7 +111,20 @@ namespace ScreenLove.Capture
                 if (delaySeconds > 0)
                     await CountdownWindow.RunAsync(delaySeconds);
                 var shot = ScreenCapture.CaptureVirtualScreen(_settings.IncludeCursor);
-                Finish(shot.Image);
+                var monitors = WindowFinder.GetMonitorRects(shot.Bounds);
+                if (!_settings.FullScreenChooseMonitor || monitors.Count < 2)
+                {
+                    Finish(shot.Image);
+                    return;
+                }
+
+                // Più schermi: si sceglie quale catturare, oppure tutti.
+                var overlay = new CaptureOverlayWindow(shot, windows: new(), monitors, chooseMonitor: true);
+                if (overlay.ShowDialog() != true)
+                    return;
+                var sel = overlay.Selection;
+                bool all = sel.X == 0 && sel.Y == 0 && sel.Width == shot.Width && sel.Height == shot.Height;
+                Finish(all ? shot.Image : shot.Crop(sel));
             }
             finally
             {
