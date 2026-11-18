@@ -185,13 +185,12 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 
 ## Prossimi passi (roadmap)
 
-1. ~~Avvio dall'exe con l'app già attiva~~ (fatto, esce con la prossima versione)
-2. ~~Schermo intero con più monitor: scelta tra tutti i monitor o uno solo~~ (fatto, esce con la prossima versione)
-3. Editor: ~~ritaglio con cornice e maniglie (angoli e lati)~~ (fatto, esce con la prossima versione); ~~annotazioni selezionabili, spostabili e ridimensionabili~~ (fatto);
-   ~~più spotlight insieme con un'unica maschera scura~~ (fatto)
-4. Impostazioni: scelta del microfono, dell'uscita audio registrata e della webcam (predefinito: quelli di Windows)
-5. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
-6. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
-7. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
-8. Condivisione (link, cloud, email), più lingue
-9. Firma del codice (niente avviso SmartScreen al primo avvio)
+Usciti nella 0.4.0: avvio dall'exe con l'app già attiva, scelta dello schermo con più monitor,
+ritaglio con le maniglie, annotazioni ridimensionabili, più spotlight insieme.
+
+1. Impostazioni: scelta del microfono, dell'uscita audio registrata e della webcam (predefinito: quelli di Windows)
+2. Video: cattura con Windows.Graphics.Capture (meno CPU), velocità e muto nel taglio, sottotitoli
+3. Scorrimento: ripulire la colonna della barra di scorrimento, scorrimento orizzontale
+4. OCR: filtrare il "rumore" (icone lette come lettere), OCR su una selezione dentro l'editor
+5. Condivisione (link, cloud, email), più lingue
+6. Firma del codice (niente avviso SmartScreen al primo avvio)

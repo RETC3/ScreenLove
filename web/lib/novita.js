@@ -11,6 +11,18 @@
 
 export const versioni = [
   {
+    versione: '0.4.0',
+    data: '2026-11-18',
+    titolo: 'Editor con le maniglie',
+    voci: [
+      ['nuovo', "Ritaglio con le maniglie: premi **Ritaglia** e trascina angoli e lati della cornice, come nelle foto dello smartphone. Conferma con `Invio` o con **Applica ritaglio**, annulla con `Esc`."],
+      ['nuovo', 'Annotazioni modificabili: rettangoli, ellissi, evidenziatori, sfocature, spotlight e frecce si ridimensionano con le maniglie. Con `Maiusc` le forme mantengono le proporzioni e le frecce si allineano ogni 45°.'],
+      ['migliorato', "Più spotlight nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight."],
+      ['nuovo', 'Scegli lo schermo: con più monitor, la cattura dello schermo intero chiede quale prendere, oppure **Tutti gli schermi**. Si può disattivare in **Impostazioni → Cattura**.'],
+      ['migliorato', "Doppio clic sull'icona con ScreenLove già attivo nell'area di notifica: si apre la finestra delle catture."],
+    ],
+  },
+  {
     versione: '0.3.0',
     data: '2026-11-14',
     titolo: 'Più leggero',
@@ -49,11 +61,6 @@ export const versioni = [
 export const inArrivo = [
   { stato: 'programma', titolo: 'ScreenLove per Mac', testo: "Arriva anche su macOS: catture, editor e registrazione video sul Mac, con le stesse funzioni della versione Windows." },
   { stato: 'programma', titolo: 'Niente più avviso di Windows', testo: "Installer con firma digitale: al primo avvio SmartScreen non mostrerà più \"App non riconosciuta\"." },
-  { stato: 'sviluppo', titolo: 'Si apre anche quando è già attivo', testo: "Doppio clic sull'icona del desktop con ScreenLove già nell'area di notifica: si apre la finestra delle catture invece di non succedere nulla." },
-  { stato: 'sviluppo', titolo: 'Scegli lo schermo', testo: 'Con più monitor, la cattura dello schermo intero chiede se prenderli tutti o solo uno: un clic sullo schermo che vuoi, oppure su **Tutti gli schermi**.' },
-  { stato: 'sviluppo', titolo: 'Ritaglio con le maniglie', testo: "Premi **Ritaglia** e compare una cornice con le maniglie su angoli e lati da trascinare, come nelle foto dello smartphone." },
-  { stato: 'sviluppo', titolo: 'Annotazioni modificabili', testo: 'Frecce, forme, sfocature e le altre annotazioni si spostano e si ridimensionano con le maniglie, senza cancellarle e rifarle.' },
-  { stato: 'sviluppo', titolo: 'Più spotlight insieme', testo: "Si possono evidenziare più zone nella stessa immagine: il resto si scurisce una volta sola, non di più a ogni spotlight." },
   { stato: 'programma', titolo: 'Scegli microfono, audio e webcam', testo: 'Nelle impostazioni si sceglie quale microfono, quale uscita audio e quale webcam usare. Di base restano quelli predefiniti di Windows.' },
   { stato: 'programma', titolo: 'Video più leggeri', testo: 'Registrazione con la cattura moderna di Windows: meno lavoro per il processore. Nel taglio, velocità e audio muto.' },
   { stato: 'programma', titolo: 'Scorrimento ancora più pulito', testo: 'Cattura a scorrimento senza la barra laterale e anche in orizzontale.' },
