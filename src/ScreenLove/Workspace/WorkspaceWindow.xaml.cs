@@ -32,7 +32,120 @@ namespace ScreenLove.Workspace
         public void RefreshLabels()
         {
             DelayButton.Content = $"Ritardo {App.Settings.DelaySeconds} s";
+            ApplyPreviewSetting();
             UpdateStatus();
+        }
+
+        // ---------- pannello di anteprima ----------
+
+        private const double DefaultPreviewWidth = 360;
+        private int _previewVersion;
+        private CaptureItem? _previewItem;
+
+        /// <summary>Mostra o nasconde il pannello di anteprima secondo le Impostazioni.</summary>
+        private void ApplyPreviewSetting()
+        {
+            bool on = App.Settings.WorkspacePreview;
+            bool wasOn = PreviewPanel.Visibility == Visibility.Visible;
+            PreviewPanel.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            PreviewSplitter.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+            if (on && !wasOn)
+            {
+                PreviewColumn.MinWidth = 220;
+                PreviewColumn.Width = new GridLength(DefaultPreviewWidth);
+                if (Width < 900) Width = 900; // spazio per elenco e anteprima
+            }
+            else if (!on)
+            {
+                PreviewColumn.MinWidth = 0;
+                PreviewColumn.Width = new GridLength(0);
+            }
+            UpdatePreview();
+        }
+
+        private async void UpdatePreview()
+        {
+            int version = ++_previewVersion;
+            if (PreviewPanel.Visibility != Visibility.Visible)
+            {
+                // Pannello spento: niente immagine in memoria.
+                PreviewImage.Source = null;
+                _previewItem = null;
+                return;
+            }
+
+            var items = Selected;
+            var item = items.Length == 1 ? items[0] : null;
+            _previewItem = item;
+            PreviewVideoMark.Visibility = Visibility.Collapsed;
+            PreviewHint.Visibility = item != null ? Visibility.Visible : Visibility.Collapsed;
+
+            if (item == null)
+            {
+                PreviewImage.Source = null;
+                PreviewName.Text = "";
+                PreviewInfo.Text = "";
+                PreviewEmpty.Text = items.Length > 1 ? $"{items.Length} catture selezionate" : "Seleziona una cattura per vederla qui";
+                PreviewEmpty.Visibility = Visibility.Visible;
+                return;
+            }
+
+            PreviewName.Text = item.Name;
+            PreviewInfo.Text = item.Info;
+            PreviewEmpty.Visibility = Visibility.Collapsed;
+
+            if (item.IsVideo)
+            {
+                PreviewImage.Source = item.Thumbnail;
+                PreviewVideoMark.Visibility = Visibility.Visible;
+                return;
+            }
+
+            // Si mostra subito la miniatura, poi l'immagine più definita.
+            PreviewImage.Source = item.Thumbnail;
+            var image = await LoadPreviewAsync(item.Path);
+            if (version == _previewVersion && image != null)
+                PreviewImage.Source = image;
+        }
+
+        /// <summary>
+        /// Carica l'immagine per l'anteprima, ridotta al massimo a 1600 × 3200 pixel: le catture a scorrimento
+        /// possono essere alte decine di migliaia di pixel e occuperebbero centinaia di MB.
+        /// </summary>
+        private static Task<ImageSource?> LoadPreviewAsync(string path) => Task.Run<ImageSource?>(() =>
+        {
+            try
+            {
+                int width, height;
+                using (var fs = File.OpenRead(path))
+                {
+                    var decoder = System.Windows.Media.Imaging.BitmapDecoder.Create(fs,
+                        System.Windows.Media.Imaging.BitmapCreateOptions.DelayCreation | System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreColorProfile,
+                        System.Windows.Media.Imaging.BitmapCacheOption.None);
+                    width = decoder.Frames[0].PixelWidth;
+                    height = decoder.Frames[0].PixelHeight;
+                }
+                double scale = Math.Min(1.0, Math.Min(1600.0 / width, 3200.0 / height));
+                var bi = new System.Windows.Media.Imaging.BitmapImage();
+                bi.BeginInit();
+                bi.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad; // non tiene bloccato il file
+                bi.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreImageCache;
+                bi.DecodePixelWidth = Math.Max(1, (int)Math.Round(width * scale));
+                bi.UriSource = new Uri(path);
+                bi.EndInit();
+                bi.Freeze();
+                return bi;
+            }
+            catch
+            {
+                return null;
+            }
+        });
+
+        private void PreviewImage_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ClickCount == 2 && _previewItem != null)
+                Open(_previewItem);
         }
 
         private void Settings_Click(object sender, RoutedEventArgs e) => App.Current.OpenSettings();
@@ -214,9 +327,58 @@ namespace ScreenLove.Workspace
             }
         }
 
-        private void Copy_Click(object sender, RoutedEventArgs e)
+        private void Copy_Click(object sender, RoutedEventArgs e) => CopyItems(Selected);
+
+        /// <summary>Tasto "Copia" sulla scheda: copia solo quella cattura.</summary>
+        private void ItemCopy_Click(object sender, RoutedEventArgs e)
         {
-            var items = Selected;
+            if ((sender as FrameworkElement)?.DataContext is CaptureItem item)
+                CopyItems(new[] { item });
+            e.Handled = true;
+        }
+
+        /// <summary>Tasto "Salva con nome" sulla scheda: salva una copia dove si vuole.</summary>
+        private void ItemSaveAs_Click(object sender, RoutedEventArgs e)
+        {
+            e.Handled = true;
+            if ((sender as FrameworkElement)?.DataContext is not CaptureItem item || !File.Exists(item.Path)) return;
+
+            string ext = Path.GetExtension(item.Path).ToLowerInvariant();
+            var dlg = new Microsoft.Win32.SaveFileDialog
+            {
+                FileName = Path.GetFileNameWithoutExtension(item.Path),
+                Filter = item.IsVideo
+                    ? "Video MP4 (*.mp4)|*.mp4"
+                    : "PNG (*.png)|*.png|JPEG (*.jpg)|*.jpg|Bitmap (*.bmp)|*.bmp",
+                FilterIndex = ext switch { ".jpg" or ".jpeg" => 2, ".bmp" => 3, _ => 1 },
+                OverwritePrompt = true,
+            };
+            if (dlg.ShowDialog(this) != true) return;
+
+            try
+            {
+                string target = dlg.FileName;
+                if (string.Equals(Path.GetFullPath(target), Path.GetFullPath(item.Path), StringComparison.OrdinalIgnoreCase))
+                {
+                    StatusText.Text = "È già questo il file della cattura.";
+                    return;
+                }
+                // Stesso formato: copia identica. Formato diverso: si converte l'immagine.
+                if (item.IsVideo || string.Equals(Path.GetExtension(target), ext, StringComparison.OrdinalIgnoreCase))
+                    File.Copy(item.Path, target, overwrite: true);
+                else
+                    ImageIO.Save(ImageIO.LoadNormalized(item.Path), target);
+                App.Store.Refresh(target);
+                StatusText.Text = "Salvata in " + target;
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = "Salvataggio non riuscito: " + ex.Message;
+            }
+        }
+
+        private void CopyItems(CaptureItem[] items)
+        {
             if (items.Length == 0) return;
             try
             {
@@ -266,8 +428,22 @@ namespace ScreenLove.Workspace
 
         private void List_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            // Un doppio clic veloce sui tasti della scheda non apre la cattura.
+            if (IsInsideButton(e.OriginalSource as DependencyObject)) return;
             if (ItemUnderMouse(e) is { } item)
                 Open(item);
+        }
+
+        private static bool IsInsideButton(DependencyObject? element)
+        {
+            while (element != null && element is not ListBoxItem)
+            {
+                if (element is System.Windows.Controls.Primitives.ButtonBase) return true;
+                element = element is Visual or System.Windows.Media.Media3D.Visual3D
+                    ? VisualTreeHelper.GetParent(element)
+                    : LogicalTreeHelper.GetParent(element);
+            }
+            return false;
         }
 
         private void List_KeyDown(object sender, KeyEventArgs e)
@@ -279,7 +455,11 @@ namespace ScreenLove.Workspace
             e.Handled = true;
         }
 
-        private void List_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateStatus();
+        private void List_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            UpdateStatus();
+            UpdatePreview();
+        }
 
         private CaptureItem? ItemUnderMouse(MouseEventArgs e)
         {
@@ -293,7 +473,8 @@ namespace ScreenLove.Workspace
         private void List_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _dragStart = e.GetPosition(List);
-            _dragArmed = ItemUnderMouse(e) != null;
+            // Sui tasti della scheda non parte il trascinamento.
+            _dragArmed = ItemUnderMouse(e) != null && !IsInsideButton(e.OriginalSource as DependencyObject);
         }
 
         private void List_PreviewMouseMove(object sender, MouseEventArgs e)

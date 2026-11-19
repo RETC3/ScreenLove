@@ -50,6 +50,9 @@
                 </DockPanel>
                 <CheckBox x:Name="AutostartBox" Content="Avvia ScreenLove con Windows (nell'area di notifica)"/>
 
+                <TextBlock Style="{StaticResource Section}" Text="Finestra delle catture"/>
+                <CheckBox x:Name="PreviewBox" Content="Mostra l'anteprima grande della cattura selezionata (pannello a destra)"/>
+
                 <TextBlock Style="{StaticResource Section}" Text="Dopo una cattura"/>
                 <CheckBox x:Name="CopyBox" Content="Copia l'immagine negli appunti"/>
                 <CheckBox x:Name="WorkspaceBox" Content="Mostra il workspace con la nuova cattura"/>

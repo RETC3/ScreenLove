@@ -20,6 +20,9 @@ namespace ScreenLove
         public bool FullScreenChooseMonitor { get; set; } = true;
         public int DelaySeconds { get; set; } = 3;
 
+        /// <summary>Finestra delle catture: pannello a destra con l'anteprima grande della cattura selezionata.</summary>
+        public bool WorkspacePreview { get; set; } = false;
+
         // Registrazione video
         public int RecordFps { get; set; } = 30;
         public bool RecordCursor { get; set; } = true;

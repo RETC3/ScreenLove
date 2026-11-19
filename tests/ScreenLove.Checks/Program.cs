@@ -387,6 +387,8 @@ namespace ScreenLove.Checks
             s.SetHotkey(HotkeyAction.Video, HotkeyBinding.Parse("Ctrl+Shift+V"));
             var c = s.Clone();
             Check(c.WatermarkText == "Prova" && c.RecordFps == 60, "Clone copia i valori");
+            Check(!new AppSettings().WorkspacePreview, "anteprima nella finestra delle catture: spenta di base");
+            Check(new AppSettings { WorkspacePreview = true }.Clone().WorkspacePreview, "anteprima: l'impostazione si conserva");
             Check(c.GetHotkey(HotkeyAction.Video).ToString() == "Ctrl+Shift+V", "Clone copia i tasti rapidi");
             Check(c.GetHotkey(HotkeyAction.Region).ToString() == "Snapshot", "tasto non personalizzato = predefinito");
             c.WatermarkText = "Altro";
