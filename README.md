@@ -49,6 +49,8 @@ ma scritto da zero. Analisi del prodotto di riferimento: [docs/ANALISI-SCREENPRE
 - Doppio clic = editor (immagini) o lettore di Windows (video) · trascina verso altre app ·
   copia immagine/percorso · elimina nel Cestino
 - I video mostrano anteprima, risoluzione e durata
+- Su ogni cattura: tasto Copia e tasto Salva con nome (PNG, JPG, BMP o MP4, a scelta della cartella)
+- Anteprima grande facoltativa in un pannello a destra (Impostazioni → Finestra delle catture)
 
 **Editor**
 - Freccia (`A`), Rettangolo (`R`), Ellisse (`E`), Evidenziatore (`H`), Testo (`T`), Step numerati (`N`),
@@ -184,6 +186,8 @@ impostata a una cartella, ogni fotogramma e l'esito di ogni confronto vengono sa
 | `tests/ScreenLove.Checks` | controlli automatici |
 
 ## Prossimi passi (roadmap)
+
+Usciti nella 0.5.0: tasti Copia e Salva con nome su ogni cattura, anteprima grande nella finestra delle catture.
 
 Usciti nella 0.4.0: avvio dall'exe con l'app già attiva, scelta dello schermo con più monitor,
 ritaglio con le maniglie, annotazioni ridimensionabili, più spotlight insieme.

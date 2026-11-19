@@ -11,6 +11,15 @@
 
 export const versioni = [
   {
+    versione: '0.5.0',
+    data: '2026-11-19',
+    titolo: 'Copia e salva al volo',
+    voci: [
+      ['nuovo', 'Tasti **Copia** e **Salva con nome** su ogni cattura della finestra delle catture: copi negli appunti con un clic, oppure salvi una copia dove vuoi, anche in un altro formato (PNG, JPG o BMP).'],
+      ['nuovo', "Anteprima grande: un pannello a destra mostra la cattura selezionata, con dimensioni e data. Doppio clic per aprirla. Si attiva in **Impostazioni → Finestra delle catture**."],
+    ],
+  },
+  {
     versione: '0.4.0',
     data: '2026-11-18',
     titolo: 'Editor con le maniglie',
